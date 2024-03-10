@@ -1,3 +1,3 @@
-mod file;
-mod os;
-mod path;
+pub mod file;
+pub mod os;
+pub mod path;
