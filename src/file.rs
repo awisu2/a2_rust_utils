@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
-use std::fs;
+use std::fs::{self, File};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -122,4 +123,25 @@ pub fn rename(from: &str, to: &str) -> Result<(), String> {
 
 pub fn remove_dir_all(path: &str) -> Result<(), String> {
     fs::remove_dir_all(path).map_err(|e| e.to_string())
+}
+
+pub fn write(path: PathBuf, data: &[u8]) -> Result<(), String> {
+    let dir = match path.parent() {
+        Some(v) => v,
+        None => return Err("".to_string()),
+    };
+
+    // 既存ディレクトリがあってもエラーにはならない
+    match fs::create_dir_all(dir) {
+        Ok(_) => (),
+        Err(e) => return Err(e.to_string()),
+    }
+
+    // mkfile =====
+    let mut file = match File::create(path.as_path()) {
+        Ok(file) => file,
+        Err(e) => return Err(e.to_string()),
+    };
+
+    file.write_all(data).map_err(|e| e.to_string())
 }
