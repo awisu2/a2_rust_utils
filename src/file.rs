@@ -114,11 +114,7 @@ fn system_time_to_u64(system_time: SystemTime) -> u64 {
 }
 
 pub fn rename(from: &str, to: &str) -> Result<(), String> {
-    match fs::rename(from, to) {
-        Ok(_) => (),
-        Err(e) => return Err(e.to_string()),
-    }
-    Ok(())
+    fs::rename(from, to).map_err(|e| e.to_string())
 }
 
 pub fn remove_dir_all(path: &str) -> Result<(), String> {
@@ -126,22 +122,12 @@ pub fn remove_dir_all(path: &str) -> Result<(), String> {
 }
 
 pub fn write(path: PathBuf, data: &[u8]) -> Result<(), String> {
-    let dir = match path.parent() {
-        Some(v) => v,
-        None => return Err("".to_string()),
-    };
+    let dir = path.parent().ok_or("")?;
 
     // 既存ディレクトリがあってもエラーにはならない
-    match fs::create_dir_all(dir) {
-        Ok(_) => (),
-        Err(e) => return Err(e.to_string()),
-    }
+    fs::create_dir_all(dir).map_err(|e| e.to_string())?;
 
     // mkfile =====
-    let mut file = match File::create(path.as_path()) {
-        Ok(file) => file,
-        Err(e) => return Err(e.to_string()),
-    };
-
+    let mut file = File::create(path.as_path()).map_err(|e| e.to_string())?;
     file.write_all(data).map_err(|e| e.to_string())
 }
