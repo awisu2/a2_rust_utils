@@ -2,17 +2,15 @@ use std::ffi::OsStr;
 use std::path::{Path, PathBuf};
 
 pub fn osstr_to_string(osstr: &OsStr, def: &str) -> String {
-    match osstr.to_os_string().to_str() {
-        Some(v) => String::from(v),
-        None => String::from(def),
-    }
+    osstr
+        .to_os_string()
+        .to_str()
+        .map(|v| String::from(v))
+        .unwrap_or_else(|| String::from(def))
 }
 
 pub fn opt_osstr_to_string(opt_osstr: Option<&OsStr>, def: &str) -> String {
-    let v = match opt_osstr {
-        Some(v) => v,
-        None => OsStr::new(""),
-    };
+    let v = opt_osstr.unwrap_or_else(|| OsStr::new(""));
     osstr_to_string(v, def)
 }
 

@@ -13,15 +13,13 @@ const ENV_CONSTS_OS_LINUX: &str = "linux";
 const ENV_CONSTS_OS_WINDOWS: &str = "windows";
 
 pub fn open_filer(dir: &str) -> Result<(), String> {
-    let res = match consts::OS {
+    match consts::OS {
         ENV_CONSTS_OS_WINDOWS => Command::new("explorer").arg(dir).spawn(),
         // TODO: check
         ENV_CONSTS_OS_LINUX => Command::new("xdg-open").arg(dir).spawn(),
         &_ => return Ok(()),
-    };
-
-    match res {
-        Ok(_) => return Ok(()),
-        Err(e) => return Err(e.to_string()),
     }
+    .map_err(|e| e.to_string())?;
+
+    Ok(())
 }
