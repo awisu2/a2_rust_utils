@@ -30,15 +30,9 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>, String> {
         return Err(format!("not directory."));
     }
 
-    let read_dir = match fs::read_dir(path) {
-        Ok(v) => v,
-        Err(e) => return Err(e.to_string()),
-    };
+    let read_dir = fs::read_dir(path).map_err(|e| e.to_string())?;
     for entry in read_dir {
-        let entry = match entry {
-            Ok(v) => v,
-            Err(e) => return Err(e.to_string()),
-        };
+        let entry = entry.map_err(|e| e.to_string())?;
         let file_info = pathbuf_to_fileinfo(entry.path());
         vec.push(file_info);
     }
