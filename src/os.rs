@@ -1,3 +1,4 @@
+use anyhow::Result;
 use std::env::consts;
 use std::process::Command;
 
@@ -12,14 +13,13 @@ const ENV_CONSTS_OS_LINUX: &str = "linux";
 // const ENV_CONSTS_OS_ANDROID: &str = "android";
 const ENV_CONSTS_OS_WINDOWS: &str = "windows";
 
-pub fn open_filer(dir: &str) -> Result<(), String> {
+pub fn open_filer(dir: &str) -> Result<()> {
     match consts::OS {
         ENV_CONSTS_OS_WINDOWS => Command::new("explorer").arg(dir).spawn(),
         // TODO: check
         ENV_CONSTS_OS_LINUX => Command::new("xdg-open").arg(dir).spawn(),
         &_ => return Ok(()),
-    }
-    .map_err(|e| e.to_string())?;
+    }?;
 
     Ok(())
 }

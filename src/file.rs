@@ -1,3 +1,4 @@
+use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 use std::fs::{self, File};
 use std::io::Write;
@@ -22,17 +23,15 @@ pub struct FileInfo {
     pub parent_path: PathBuf,
 }
 
-pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>, String> {
+/// Read directory and return file infos.  
+/// It include all type (file, dirctory, symlink, etc...) infos
+pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
     let mut vec: Vec<FileInfo> = Vec::new();
 
     let path = Path::new(dir);
-    if !path.is_dir() {
-        return Err(format!("not directory."));
-    }
-
-    let read_dir = fs::read_dir(path).map_err(|e| e.to_string())?;
+    let read_dir = fs::read_dir(path).context("")?;
     for entry in read_dir {
-        let entry = entry.map_err(|e| e.to_string())?;
+        let entry = entry?;
         let file_info = pathbuf_to_fileinfo(entry.path());
         vec.push(file_info);
     }
@@ -40,16 +39,19 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>, String> {
     Ok(vec)
 }
 
+/// convert &str to PathBuf and get Fileinfo
 pub fn str_to_fileinfo(str: &str) -> FileInfo {
     let pathbuf = PathBuf::from(str);
     pathbuf_to_fileinfo(pathbuf)
 }
 
+/// File existence check
 pub fn is_exists_file(path: &str) -> bool {
     let pathbuf = PathBuf::from(path);
     pathbuf.exists()
 }
 
+/// Return FileInfo(custom format) convert from Pathbuf
 fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
     let _pathbuf = pathbuf.clone();
     let path = _pathbuf.as_path();
@@ -107,21 +109,36 @@ fn system_time_to_u64(system_time: SystemTime) -> u64 {
     duration.as_secs()
 }
 
-pub fn rename(from: &str, to: &str) -> Result<(), String> {
-    fs::rename(from, to).map_err(|e| e.to_string())
+pub fn rename(from: &str, to: &str) -> Result<()> {
+    fs::rename(from, to)?;
+    Ok(())
 }
 
-pub fn remove_dir_all(path: &str) -> Result<(), String> {
-    fs::remove_dir_all(path).map_err(|e| e.to_string())
+pub fn remove_dir_all(path: &str) -> Result<()> {
+    fs::remove_dir_all(path)?;
+    Ok(())
 }
 
-pub fn write(path: PathBuf, data: &[u8]) -> Result<(), String> {
-    let dir = path.parent().ok_or("")?;
+pub fn write(path: PathBuf, data: &[u8]) -> Result<()> {
+    let dir = path.parent().ok_or(anyhow!(""))?;
 
     // 既存ディレクトリがあってもエラーにはならない
-    fs::create_dir_all(dir).map_err(|e| e.to_string())?;
+    fs::create_dir_all(dir)?;
 
     // mkfile =====
-    let mut file = File::create(path.as_path()).map_err(|e| e.to_string())?;
-    file.write_all(data).map_err(|e| e.to_string())
+    let mut file = File::create(path.as_path())?;
+    file.write_all(data)?;
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_dir_no_target() {
+        let dir = "notargetdir";
+        let res = read_dir(dir);
+        assert!(res.is_err());
+    }
 }
