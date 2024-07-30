@@ -141,4 +141,12 @@ mod tests {
         let res = read_dir(dir);
         assert!(res.is_err());
     }
+
+    #[test]
+    fn test_write() {
+        let path: PathBuf = PathBuf::from("./test_file");
+        let data: &[u8] = b"Hello world";
+        let res = write(path, data);
+        assert!(res.is_ok());
+    }
 }
