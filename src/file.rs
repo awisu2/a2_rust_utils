@@ -98,18 +98,20 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
         Err(_) => (0, 0),
     };
 
-    let pathbuf = entry.path();
-    let path = pathbuf.as_path();
-    let extension = path::opt_osstr_to_string(path.extension(), "");
-    let is_movie = is_movie(extension.as_str());
-    let is_image = is_image(extension.as_str());
+    let path = Path::new(file_name.as_str());
+    let extension = path
+        .extension()
+        .and_then(|v| v.to_str())
+        .ok_or(anyhow!(""))?;
+    let is_movie = is_movie(extension);
+    let is_image = is_image(extension);
 
-    let parent_path = pathbuf.parent().unwrap().to_path_buf();
+    let parent_path = path.parent().unwrap().to_path_buf();
 
     Ok(FileInfo {
-        path: pathbuf,
-        file_name: file_name,
-        extension: extension,
+        path: path.to_path_buf(),
+        file_name: file_name.clone(),
+        extension: extension.to_string(),
         is_dir: file_type.is_dir(),
         is_file: file_type.is_file(),
         is_movie: is_movie,
