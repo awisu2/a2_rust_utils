@@ -1,9 +1,9 @@
 use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
-use std::fs::{self, File};
+use std::fs::{self, DirEntry, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use crate::path;
 
@@ -32,7 +32,7 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
     let read_dir = fs::read_dir(path).context("")?;
     for entry in read_dir {
         let entry = entry?;
-        let file_info = pathbuf_to_fileinfo(entry.path());
+        let file_info = direntry_to_fileinfo(entry)?;
         vec.push(file_info);
     }
 
@@ -83,6 +83,41 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
         created: created,
         parent_path: parnt_path,
     }
+}
+
+fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
+    let file_type = entry.file_type()?;
+
+    let file_name = path::osstr_to_string(entry.file_name().as_os_str(), "");
+
+    let (modified, created) = match entry.metadata() {
+        Ok(v) => (
+            system_time_to_u64(v.modified().unwrap()),
+            system_time_to_u64(v.created().unwrap()),
+        ),
+        Err(_) => (0, 0),
+    };
+
+    let pathbuf = entry.path();
+    let path = pathbuf.as_path();
+    let extension = path::opt_osstr_to_string(path.extension(), "");
+    let is_movie = is_movie(extension.as_str());
+    let is_image = is_image(extension.as_str());
+
+    let parent_path = pathbuf.parent().unwrap().to_path_buf();
+
+    Ok(FileInfo {
+        path: pathbuf,
+        file_name: file_name,
+        extension: extension,
+        is_dir: file_type.is_dir(),
+        is_file: file_type.is_file(),
+        is_movie: is_movie,
+        is_image: is_image,
+        modified: modified,
+        created: created,
+        parent_path: parent_path,
+    })
 }
 
 fn is_movie(extension: &str) -> bool {
@@ -148,5 +183,11 @@ mod tests {
         let data: &[u8] = b"Hello world";
         let res = write(path, data);
         assert!(res.is_ok());
+    }
+
+    #[test]
+    fn test_read_dir() {
+        let path: &str = "./local_dir";
+        let _ = read_dir(path);
     }
 }
