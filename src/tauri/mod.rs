@@ -4,30 +4,30 @@ use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppDirs {
-    config_dir: PathBuf,
-    data_dir: PathBuf,
-    cache_dir: PathBuf,
-    log_dir: PathBuf,
-    temp_dir: PathBuf,
+    pub config_dir: PathBuf,
+    pub data_dir: PathBuf,
+    pub cache_dir: PathBuf,
+    pub log_dir: PathBuf,
+    pub local_data_dir: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SystemDirs {
-    config_dir: PathBuf,
-    data_dir: PathBuf,
-    local_data_dir: PathBuf,
-    desktop_dir: PathBuf,
-    document_dir: PathBuf,
-    download_dir: PathBuf,
-    executable_dir: PathBuf,
-    font_dir: PathBuf,
-    home_dir: PathBuf,
-    picture_dir: PathBuf,
-    runtime_dir: PathBuf,
-    template_dir: PathBuf,
-    video_dir: PathBuf,
-    resource_dir: PathBuf,
-    temp_dir: PathBuf,
+    pub config_dir: PathBuf,
+    pub data_dir: PathBuf,
+    pub local_data_dir: PathBuf,
+    pub desktop_dir: PathBuf,
+    pub document_dir: PathBuf,
+    pub download_dir: PathBuf,
+    pub executable_dir: PathBuf,
+    pub font_dir: PathBuf,
+    pub home_dir: PathBuf,
+    pub picture_dir: PathBuf,
+    pub runtime_dir: PathBuf,
+    pub template_dir: PathBuf,
+    pub video_dir: PathBuf,
+    pub resource_dir: PathBuf,
+    pub temp_dir: PathBuf,
 }
 
 pub fn app_dirs(handle: tauri::AppHandle) -> AppDirs {
@@ -38,7 +38,7 @@ pub fn app_dirs(handle: tauri::AppHandle) -> AppDirs {
         data_dir: path.app_data_dir().unwrap_or_default(),
         cache_dir: path.app_cache_dir().unwrap_or_default(),
         log_dir: path.app_log_dir().unwrap_or_default(),
-        temp_dir: path.app_local_data_dir().unwrap_or_default(),
+        local_data_dir: path.app_local_data_dir().unwrap_or_default(),
     }
 }
 
