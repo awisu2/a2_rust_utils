@@ -1,5 +1,5 @@
 use anyhow::{anyhow, Result};
-use rusqlite::{params, Connection, Row, ToSql};
+use rusqlite::{types::Value, Connection, Row, ToSql};
 use std::{path::Path, sync::Mutex};
 
 pub struct SqliteGateway {
@@ -21,20 +21,26 @@ impl SqliteGateway {
         Ok(())
     }
 
-    pub fn execute(&self, sql: &str, params: &[&dyn rusqlite::ToSql]) -> Result<usize> {
+    fn _execute(&self, sql: &str, params: &[&dyn ToSql]) -> Result<usize> {
         // lock() is sync::Mutex function, thread wait unlock if locked with other thread
-        let conn = lock(&self.conn)?;
+        let conn = Self::lock(&self.conn)?;
         let res = conn.execute(sql, params).map_err(|e| anyhow!("{}", e))?;
         Ok(res)
     }
 
-    pub fn query_all<T>(
+    // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
+    pub fn execute(&self, sql: &str, params: &[Value]) -> Result<usize> {
+        let refs = Self::map_values_to_refs(params);
+        self._execute(sql, &refs)
+    }
+
+    fn _select_all<T>(
         &self,
         sql: &str,
         params: &[&dyn ToSql],
         mut map: impl FnMut(&Row) -> rusqlite::Result<T>,
     ) -> Result<Vec<T>> {
-        let conn = lock(&self.conn)?;
+        let conn = Self::lock(&self.conn)?;
         let mut stmt = conn.prepare(sql)?;
         let it = stmt.query_map(params, |row| map(row))?;
 
@@ -45,28 +51,56 @@ impl SqliteGateway {
         Ok(out)
     }
 
-    pub fn query_one<T>(
+    // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
+    pub fn select_all<T>(
+        &self,
+        sql: &str,
+        params: &[Value],
+        map: impl FnMut(&Row) -> rusqlite::Result<T>,
+    ) -> Result<Vec<T>> {
+        let refs = Self::map_values_to_refs(params);
+        self._select_all(sql, &refs, map)
+    }
+
+    fn _select_one<T>(
         &self,
         sql: &str,
         params: &[&dyn ToSql],
         map: impl FnOnce(&Row) -> rusqlite::Result<T>,
     ) -> Result<T> {
-        let conn = lock(&self.conn)?;
+        let conn = Self::lock(&self.conn)?;
         let res = conn.query_row(sql, params, map)?;
         Ok(res)
     }
-}
 
-// helper =====
-// lock mutex and map error
-fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
-    m.lock().map_err(|e| anyhow!("{}", e))
+    // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
+    pub fn select_one<T>(
+        &self,
+        sql: &str,
+        params: &[Value],
+        map: impl FnOnce(&Row) -> rusqlite::Result<T>,
+    ) -> Result<T> {
+        let refs = Self::map_values_to_refs(params);
+        self._select_one(sql, &refs, map)
+    }
+
+    // helpers =====
+    // &[Value] を &[&dyn ToSql] に変換
+    fn map_values_to_refs<'a>(values: &'a [Value]) -> Vec<&'a dyn ToSql> {
+        values.iter().map(|v| v as &dyn ToSql).collect()
+    }
+
+    // lock mutex and map error
+    fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
+        m.lock().map_err(|e| anyhow!("{}", e))
+    }
 }
 
 // test
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::sqlite::application::sample_data;
 
     #[test]
     fn test_sqlite_gateway() {
@@ -79,42 +113,32 @@ mod tests {
 
         let gateway = SqliteGateway::open(db_path).unwrap();
 
-        gateway
-            .execute(
-                "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT NOT NULL)",
-                &[],
-            )
+        let (sql, params) = sample_data::SampleData::create_table_sql();
+        gateway.execute(&sql, &params).unwrap();
+
+        let (sql, params) = sample_data::SampleData::insert("Alice", 18);
+        gateway.execute(&sql, &params).unwrap();
+        let (sql, params) = sample_data::SampleData::insert("Bob", 30);
+        gateway.execute(&sql, &params).unwrap();
+
+        let (sql, params) = sample_data::SampleData::select_all();
+        let records: Vec<sample_data::SampleData> = gateway
+            .select_all(&sql, &params, sample_data::SampleData::map_from_row)
             .unwrap();
 
-        gateway
-            .execute("INSERT INTO users (name) VALUES (?1)", &[&"Alice"])
-            .unwrap();
-        gateway
-            .execute("INSERT INTO users (name) VALUES (?1)", &[&"Bob"])
-            .unwrap();
+        assert_eq!(records.len(), 2);
+        assert_eq!(records[0].name, "Alice");
+        assert_eq!(records[1].name, "Bob");
 
-        let users: Vec<(i64, String)> = gateway
-            .query_all("SELECT id, name FROM users ORDER BY id DESC", &[], |row| {
-                Ok((row.get(0)?, row.get(1)?))
-            })
+        let (sql, params) = sample_data::SampleData::delete_by_id(records[0].id);
+        gateway.execute(&sql, &params).unwrap();
+
+        let (sql, params) = sample_data::SampleData::select_all();
+        let records: Vec<sample_data::SampleData> = gateway
+            .select_all(&sql, &params, sample_data::SampleData::map_from_row)
             .unwrap();
-
-        assert_eq!(users.len(), 2);
-        assert_eq!(users[0].1, "Bob");
-        assert_eq!(users[1].1, "Alice");
-
-        gateway
-            .execute("DELETE FROM users WHERE id = ?1", &[&users[0].0])
-            .unwrap();
-
-        let remaining_users: Vec<(i64, String)> = gateway
-            .query_all("SELECT id, name FROM users ORDER BY id DESC", &[], |row| {
-                Ok((row.get(0)?, row.get(1)?))
-            })
-            .unwrap();
-
-        assert_eq!(remaining_users.len(), 1);
-        assert_eq!(remaining_users[0].1, "Alice");
+        assert_eq!(records.len(), 1);
+        assert_eq!(records[0].name, "Bob");
 
         gateway.close().unwrap();
 
