@@ -1,54 +1,39 @@
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, Ok, Result};
 use rusqlite::{types::Value, Connection, Row, ToSql};
 use std::{path::Path, sync::Mutex};
 
 pub struct SqliteGateway {
-    conn: Mutex<rusqlite::Connection>,
+    // 同時更新ができないので Mutex で保護
+    // pathの確定タイミングが不明なため Option
+    conn: Mutex<Option<Connection>>,
+    path: Option<String>,
 }
 
 impl SqliteGateway {
     // impl: genericを省略する記述 本来は open<T: AsRef<Path>>(path: T) のように書く
-    pub fn open(path: impl AsRef<Path>) -> Result<Self> {
+    pub fn open(&mut self, path: impl AsRef<Path>) -> Result<()> {
         let conn = Connection::open(path.as_ref())?;
-        Ok(Self {
-            conn: Mutex::new(conn),
-        })
-    }
 
-    pub fn close(self) -> anyhow::Result<()> {
-        let conn = self.conn.into_inner().map_err(|e| anyhow!("{}", e))?;
-        conn.close().map_err(|(_, e)| anyhow!("{}", e))?;
+        self.conn = Mutex::new(Some(conn));
+        self.path = Some(path.as_ref().to_string_lossy().to_string());
+
         Ok(())
     }
 
-    fn _execute(&self, sql: &str, params: &[&dyn ToSql]) -> Result<usize> {
-        // lock() is sync::Mutex function, thread wait unlock if locked with other thread
-        let conn = Self::lock(&self.conn)?;
-        let res = conn.execute(sql, params).map_err(|e| anyhow!("{}", e))?;
-        Ok(res)
+    pub fn close(&mut self) -> anyhow::Result<()> {
+        let conn = self.take_conn()?;
+        conn.close().map_err(|(_, e)| anyhow!("{}", e))?;
+
+        self.conn = Mutex::new(None);
+        self.path = None;
+
+        Ok(())
     }
 
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
     pub fn execute(&self, sql: &str, params: &[Value]) -> Result<usize> {
         let refs = Self::map_values_to_refs(params);
-        self._execute(sql, &refs)
-    }
-
-    fn _select_all<T>(
-        &self,
-        sql: &str,
-        params: &[&dyn ToSql],
-        mut map: impl FnMut(&Row) -> rusqlite::Result<T>,
-    ) -> Result<Vec<T>> {
-        let conn = Self::lock(&self.conn)?;
-        let mut stmt = conn.prepare(sql)?;
-        let it = stmt.query_map(params, |row| map(row))?;
-
-        let mut out = Vec::new();
-        for x in it {
-            out.push(x?);
-        }
-        Ok(out)
+        self.with_conn(|conn| Ok(conn.execute(sql, refs.as_slice())?))
     }
 
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
@@ -56,21 +41,21 @@ impl SqliteGateway {
         &self,
         sql: &str,
         params: &[Value],
-        map: impl FnMut(&Row) -> rusqlite::Result<T>,
+        mut map: impl FnMut(&Row) -> rusqlite::Result<T>,
     ) -> Result<Vec<T>> {
         let refs = Self::map_values_to_refs(params);
-        self._select_all(sql, &refs, map)
-    }
+        // self._select_all(sql, &refs, map)
 
-    fn _select_one<T>(
-        &self,
-        sql: &str,
-        params: &[&dyn ToSql],
-        map: impl FnOnce(&Row) -> rusqlite::Result<T>,
-    ) -> Result<T> {
-        let conn = Self::lock(&self.conn)?;
-        let res = conn.query_row(sql, params, map)?;
-        Ok(res)
+        self.with_conn(|conn| {
+            let mut stmt = conn.prepare(sql)?;
+            let it = stmt.query_map(refs.as_slice(), |row| map(row))?;
+
+            let mut out = Vec::new();
+            for x in it {
+                out.push(x?);
+            }
+            Ok(out)
+        })
     }
 
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
@@ -81,7 +66,10 @@ impl SqliteGateway {
         map: impl FnOnce(&Row) -> rusqlite::Result<T>,
     ) -> Result<T> {
         let refs = Self::map_values_to_refs(params);
-        self._select_one(sql, &refs, map)
+        self.with_conn(|conn| {
+            let res = conn.query_row(sql, refs.as_slice(), map)?;
+            Ok(res)
+        })
     }
 
     // helpers =====
@@ -90,9 +78,19 @@ impl SqliteGateway {
         values.iter().map(|v| v as &dyn ToSql).collect()
     }
 
-    // lock mutex and map error
-    fn lock<T>(m: &Mutex<T>) -> Result<std::sync::MutexGuard<'_, T>> {
-        m.lock().map_err(|e| anyhow!("{}", e))
+    fn with_conn<R>(&self, f: impl FnOnce(&mut Connection) -> Result<R>) -> Result<R> {
+        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
+        let conn = guard
+            .as_mut()
+            .ok_or_else(|| anyhow!("Connection is already closed"))?;
+        f(conn)
+    }
+
+    fn take_conn(&self) -> Result<Connection> {
+        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
+        guard
+            .take()
+            .ok_or_else(|| anyhow!("Connection is already closed"))
     }
 }
 
@@ -100,7 +98,7 @@ impl SqliteGateway {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::sqlite::application::sample_data;
+    use crate::sqlite::SampleData;
 
     #[test]
     fn test_sqlite_gateway() {
@@ -111,31 +109,36 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
 
-        let gateway = SqliteGateway::open(db_path).unwrap();
+        let mut gateway = SqliteGateway {
+            conn: Mutex::new(None),
+            path: None,
+        };
 
-        let (sql, params) = sample_data::SampleData::create_table_sql();
+        gateway.open(db_path).unwrap();
+
+        let (sql, params) = SampleData::create_table_sql();
         gateway.execute(&sql, &params).unwrap();
 
-        let (sql, params) = sample_data::SampleData::insert("Alice", 18);
+        let (sql, params) = SampleData::insert("Alice", 18);
         gateway.execute(&sql, &params).unwrap();
-        let (sql, params) = sample_data::SampleData::insert("Bob", 30);
+        let (sql, params) = SampleData::insert("Bob", 30);
         gateway.execute(&sql, &params).unwrap();
 
-        let (sql, params) = sample_data::SampleData::select_all();
-        let records: Vec<sample_data::SampleData> = gateway
-            .select_all(&sql, &params, sample_data::SampleData::map_from_row)
+        let (sql, params) = SampleData::select_all();
+        let records: Vec<SampleData> = gateway
+            .select_all(&sql, &params, SampleData::map_from_row)
             .unwrap();
 
         assert_eq!(records.len(), 2);
         assert_eq!(records[0].name, "Alice");
         assert_eq!(records[1].name, "Bob");
 
-        let (sql, params) = sample_data::SampleData::delete_by_id(records[0].id);
+        let (sql, params) = SampleData::delete_by_id(records[0].id);
         gateway.execute(&sql, &params).unwrap();
 
-        let (sql, params) = sample_data::SampleData::select_all();
-        let records: Vec<sample_data::SampleData> = gateway
-            .select_all(&sql, &params, sample_data::SampleData::map_from_row)
+        let (sql, params) = SampleData::select_all();
+        let records: Vec<SampleData> = gateway
+            .select_all(&sql, &params, SampleData::map_from_row)
             .unwrap();
         assert_eq!(records.len(), 1);
         assert_eq!(records[0].name, "Bob");
