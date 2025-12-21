@@ -1,5 +1,6 @@
 use anyhow::Result;
 use rusqlite::{params, Connection};
+pub mod sqlite_gateway;
 
 fn sample(path: &str) -> Result<()> {
     let conn = Connection::open(path)?;
