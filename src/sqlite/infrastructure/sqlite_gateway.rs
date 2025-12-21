@@ -5,15 +5,21 @@ use std::{path::Path, sync::Mutex};
 pub struct SqliteGateway {
     // 同時更新ができないので Mutex で保護
     // pathの確定タイミングが不明なため Option
-    conn: Mutex<Option<Connection>>,
-    path: Option<String>,
+    pub conn: Mutex<Option<Connection>>,
+    pub path: Option<String>,
 }
 
 impl SqliteGateway {
+    pub fn create() -> Self {
+        SqliteGateway {
+            conn: Mutex::new(None),
+            path: None,
+        }
+    }
+
     // impl: genericを省略する記述 本来は open<T: AsRef<Path>>(path: T) のように書く
     pub fn open(&mut self, path: impl AsRef<Path>) -> Result<()> {
         let conn = Connection::open(path.as_ref())?;
-
         self.conn = Mutex::new(Some(conn));
         self.path = Some(path.as_ref().to_string_lossy().to_string());
 
@@ -109,10 +115,7 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
 
-        let mut gateway = SqliteGateway {
-            conn: Mutex::new(None),
-            path: None,
-        };
+        let mut gateway = SqliteGateway::create();
 
         gateway.open(db_path).unwrap();
 
