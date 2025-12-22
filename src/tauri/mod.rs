@@ -5,11 +5,31 @@ use tauri::Manager;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AppDirs {
-    pub config_dir: PathBuf,     // App configuration directory
-    pub cache_dir: PathBuf,      // App cache directory
-    pub log_dir: PathBuf,        // App log directory
-    pub local_data_dir: PathBuf, // data directory.
-    pub data_dir: PathBuf, // data directory. roaming on Windows (roaming is only windows concept)
+    /// アプリ設定ファイル用ディレクトリ  
+    /// 例: config.json など  
+    /// windows: %APPDATA%\<AppName>  
+    pub config_dir: PathBuf,
+
+    /// キャッシュ用ディレクトリ  
+    /// 再生成可能な一時データ向け  
+    /// windows: %LOCALAPPDATA%\<AppName>\Cache  
+    pub cache_dir: PathBuf,
+
+    /// ログファイル用ディレクトリ  
+    /// 実行ログ・デバッグログの保存先  
+    /// windows: %LOCALAPPDATA%\<AppName>\Logs
+    pub log_dir: PathBuf,
+
+    /// 端末固有の永続データ用ディレクトリ  
+    /// アプリの設定やキャッシュ以外のデータ保存先
+    /// windows: %LOCALAPPDATA%\<AppName>\Data
+    pub local_data_dir: PathBuf,
+
+    /// 永続データ用ディレクトリ  (for windows: Roaming)
+    /// ユーザ間で同期されるデータ保存先
+    /// DB（SQLiteなど）の保存先として想定  
+    /// windows: %APPDATA%\<AppName>
+    pub data_dir: PathBuf,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
