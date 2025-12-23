@@ -23,8 +23,8 @@ impl TupleF64Ext for (f64, f64) {
 
 #[derive(Debug)]
 pub struct PaperSize {
-    x: u32,
-    y: u32,
+    pub x: u32,
+    pub y: u32,
 }
 
 pub const A2: PaperSize = PaperSize { x: 420, y: 594 };
