@@ -23,31 +23,31 @@ impl SampleData {
         })
     }
 
-    pub fn create_table_sql() -> (&'static str, [Value; 0]) {
-        (&CREATE_TABLE_SQL, [])
+    pub fn create_table_sql() -> (&'static str, Vec<Value>) {
+        (&CREATE_TABLE_SQL, vec![])
     }
 
-    pub fn insert(name: &str, age: i32) -> (&'static str, [Value; 2]) {
+    pub fn insert(name: &str, age: i32) -> (&'static str, Vec<Value>) {
         (
             &INSERT_SQL,
-            [Value::Text(name.to_string()), Value::Integer(age as i64)],
+            vec![Value::Text(name.to_string()), Value::Integer(age as i64)],
         )
     }
 
-    pub fn select_all() -> (&'static str, [Value; 0]) {
-        (&SELECT_ALL_SQL, [])
+    pub fn select_all() -> (&'static str, Vec<Value>) {
+        (&SELECT_ALL_SQL, vec![])
     }
 
-    pub fn select_by_id(id: i32) -> (&'static str, [Value; 1]) {
-        (&SELECT_BY_ID_SQL, [Value::Integer(id as i64)])
+    pub fn select_by_id(id: i32) -> (&'static str, Vec<Value>) {
+        (&SELECT_BY_ID_SQL, vec![Value::Integer(id as i64)])
     }
 
-    pub fn delete_by_id(id: i32) -> (&'static str, [Value; 1]) {
-        (&DELETE_BY_ID_SQL, [Value::Integer(id as i64)])
+    pub fn delete_by_id(id: i32) -> (&'static str, Vec<Value>) {
+        (&DELETE_BY_ID_SQL, vec![Value::Integer(id as i64)])
     }
 
-    pub fn delete_all() -> (&'static str, [Value; 0]) {
-        (&DELETE_ALL_SQL, [])
+    pub fn delete_all() -> (&'static str, Vec<Value>) {
+        (&DELETE_ALL_SQL, vec![])
     }
 }
 
