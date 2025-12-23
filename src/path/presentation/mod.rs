@@ -9,14 +9,20 @@ pub fn path_to_string(path: &Path) -> String {
     path.to_string_lossy().into_owned()
 }
 
-// convert Option<&OsStr> to String
-// this is for path.extension() and path.file_name()
-pub fn osstr_opt_to_string(str: Option<&OsStr>) -> String {
-    str.map(|n| osstr_to_string(n)).unwrap_or_default()
+// convert Option<&Path> to String
+// this is for path.parent()
+pub fn path_opt_to_string(path: Option<&Path>) -> String {
+    path.map(|p| path_to_string(p)).unwrap_or_default()
 }
 
 // convert &OsStr to String
 // Osstring also can use this function
 pub fn osstr_to_string(str: &OsStr) -> String {
     str.to_string_lossy().into_owned()
+}
+
+// convert Option<&OsStr> to String
+// this is for path.extension() and path.file_name()
+pub fn osstr_opt_to_string(str: Option<&OsStr>) -> String {
+    str.map(|n| osstr_to_string(n)).unwrap_or_default()
 }

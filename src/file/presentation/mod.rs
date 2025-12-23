@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::file::domain::FileInfo;
 
-use crate::path;
+use crate::path::{self, osstr_opt_to_string, osstr_to_string};
 
 /// Read directory and return file infos.  
 /// It include all type (file, dirctory, symlink, etc...) infos
@@ -40,8 +40,8 @@ pub fn is_exists_file(path: &str) -> bool {
 fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
     let _pathbuf = pathbuf.clone();
     let path = _pathbuf.as_path();
-    let file_name = path::opt_osstr_to_string(path.file_name(), "");
-    let extension = path::opt_osstr_to_string(path.extension(), "");
+    let file_name = osstr_opt_to_string(path.file_name());
+    let extension = osstr_opt_to_string(path.extension());
 
     let is_dir = path.is_dir();
     let is_movie = is_movie(extension.as_str());
@@ -73,7 +73,7 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
 fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
     let file_type = entry.file_type()?;
 
-    let file_name = path::osstr_to_string(entry.file_name().as_os_str(), "");
+    let file_name = osstr_to_string(&entry.file_name());
 
     let (modified, created) = match entry.metadata() {
         Ok(v) => (
@@ -85,7 +85,7 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
 
     let pathbuf = entry.path();
     let path = pathbuf.as_path();
-    let extension = path::opt_osstr_to_string(path.extension(), "");
+    let extension = osstr_opt_to_string(path.extension());
     let is_movie = is_movie(extension.as_str());
     let is_image = is_image(extension.as_str());
 
