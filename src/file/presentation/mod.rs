@@ -6,7 +6,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::file::domain::FileInfo;
 
-use crate::path::{self, osstr_opt_to_string, osstr_to_string};
+use crate::path::{osstr_opt_to_string, osstr_to_string};
 
 /// Read directory and return file infos.  
 /// It include all type (file, dirctory, symlink, etc...) infos

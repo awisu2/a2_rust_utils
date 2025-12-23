@@ -1,7 +1,4 @@
-use std::{
-    ffi::{OsStr, OsString},
-    path::Path,
-};
+use std::{ffi::OsStr, path::Path};
 
 // convert &Path to String.
 // Pathbuf also can use this function
