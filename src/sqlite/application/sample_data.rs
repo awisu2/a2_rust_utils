@@ -1,6 +1,8 @@
 use once_cell::sync::Lazy;
 use rusqlite::types::Value;
+use serde::{Deserialize, Serialize};
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SampleData {
     pub id: i32,
     pub name: String,
