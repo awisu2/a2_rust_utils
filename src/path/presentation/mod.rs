@@ -1,4 +1,7 @@
-use std::{ffi::OsStr, path::Path};
+use std::{
+    ffi::{OsStr, OsString},
+    path::Path,
+};
 
 // convert &Path to String.
 // Pathbuf also can use this function
@@ -9,6 +12,11 @@ pub fn path_to_string(path: &Path) -> String {
 // convert Option<&OsStr> to String
 // this is for path.extension() and path.file_name()
 pub fn osstr_opt_to_string(str: Option<&OsStr>) -> String {
-    str.map(|n| n.to_string_lossy().into_owned())
-        .unwrap_or_default()
+    str.map(|n| osstr_to_string(n)).unwrap_or_default()
+}
+
+// convert &OsStr to String
+// Osstring also can use this function
+pub fn osstr_to_string(str: &OsStr) -> String {
+    str.to_string_lossy().into_owned()
 }
