@@ -6,7 +6,7 @@ pub struct A2RwOptionLock<T> {
     inner: RwLock<Option<T>>,
 }
 
-impl<T: Clone> A2RwOptionLock<T> {
+impl<T> A2RwOptionLock<T> {
     pub fn new() -> Self {
         Self {
             inner: RwLock::new(None),
@@ -40,7 +40,10 @@ impl<T: Clone> A2RwOptionLock<T> {
         Ok(())
     }
 
-    pub fn get(&self) -> Result<T> {
+    pub fn get(&self) -> Result<T>
+    where
+        T: Clone,
+    {
         self.get_read_guard()?
             .clone()
             .ok_or_else(|| anyhow!("{} not setted", self.type_name()))
@@ -53,5 +56,31 @@ impl<T: Clone> A2RwOptionLock<T> {
             .ok_or_else(|| anyhow!("{} not setted", self.type_name()))?;
 
         Ok(f(value))
+    }
+}
+
+// test
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    struct NoCloane {
+        pub v: i32,
+    }
+
+    #[test]
+    fn test_rwlock_option_lock() {
+        let lock1 = A2RwOptionLock::<i32>::new();
+        let lock2 = A2RwOptionLock::<NoCloane>::new();
+
+        lock1.set(10).unwrap();
+        let v = lock1.get();
+        assert_eq!(v.unwrap(), 10);
+
+        lock2.set(NoCloane { v: 20 }).unwrap();
+        // NoClone cannot use get(), because T is not Clone
+        // lock2.get();
+        let v = lock2.with(|v| v.v);
+        assert_eq!(v.unwrap(), 20);
     }
 }
