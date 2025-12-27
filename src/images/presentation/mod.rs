@@ -5,6 +5,8 @@ trait TupleU32Ext {
     fn to_f64(&self) -> (f64, f64);
 }
 
+// TODO: あんま使ってないので、とりあえずワーニングブロック
+#[allow(dead_code)]
 trait TupleF64Ext {
     fn to_u32(&self) -> (u32, u32);
 }

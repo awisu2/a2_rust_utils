@@ -57,6 +57,14 @@ impl<T> A2RwOptionLock<T> {
 
         Ok(f(value))
     }
+
+    pub fn with_mut<R>(&self, f: impl FnOnce(&mut T) -> R) -> Result<R> {
+        let mut w_guard = self.get_write_guard()?;
+        let v = w_guard
+            .as_mut()
+            .ok_or_else(|| anyhow!("{} not setted", self.type_name()))?;
+        Ok(f(v))
+    }
 }
 
 // test
