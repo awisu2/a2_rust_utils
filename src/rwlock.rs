@@ -86,8 +86,8 @@ mod tests {
 
     #[test]
     fn test_rwlock_option_lock() {
-        let lock1 = A2RwOptionLock::<i32>::new();
-        let lock2 = A2RwOptionLock::<NoCloane>::new();
+        let lock1 = A2RwOptionLock::<i32>::default();
+        let lock2 = A2RwOptionLock::<NoCloane>::default();
 
         lock1.set(10).unwrap();
         let v = lock1.get();
