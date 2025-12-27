@@ -9,14 +9,16 @@ pub struct SqliteGateway {
     pub path: Option<String>,
 }
 
-impl SqliteGateway {
-    pub fn create() -> Self {
+impl Default for SqliteGateway {
+    fn default() -> Self {
         SqliteGateway {
             conn: Mutex::new(None),
             path: None,
         }
     }
+}
 
+impl SqliteGateway {
     // impl: genericを省略する記述 本来は open<T: AsRef<Path>>(path: T) のように書く
     pub fn open(&mut self, path: impl AsRef<Path>) -> Result<()> {
         let conn = Connection::open(path.as_ref())?;
@@ -115,7 +117,7 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
 
-        let mut gateway = SqliteGateway::create();
+        let mut gateway = SqliteGateway::default();
 
         gateway.open(db_path).unwrap();
 
