@@ -2,11 +2,11 @@
 use anyhow::{anyhow, Result};
 use std::sync::RwLock;
 
-pub struct A2RwLock<T> {
+pub struct A2RwOptionLock<T> {
     inner: RwLock<Option<T>>,
 }
 
-impl<T: Clone> A2RwLock<T> {
+impl<T: Clone> A2RwOptionLock<T> {
     pub fn new() -> Self {
         Self {
             inner: RwLock::new(None),
