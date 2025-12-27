@@ -6,10 +6,18 @@ pub struct A2RwOptionLock<T> {
     inner: RwLock<Option<T>>,
 }
 
-impl<T> A2RwOptionLock<T> {
-    pub fn new() -> Self {
+impl<T> Default for A2RwOptionLock<T> {
+    fn default() -> Self {
         Self {
             inner: RwLock::new(None),
+        }
+    }
+}
+
+impl<T> A2RwOptionLock<T> {
+    pub fn new(inner: Option<T>) -> Self {
+        Self {
+            inner: RwLock::new(inner),
         }
     }
 
