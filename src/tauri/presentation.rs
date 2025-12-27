@@ -1,2 +1,3 @@
-pub(crate) mod filer;
-pub(crate) mod path;
+pub mod command;
+pub mod filer;
+pub mod path;

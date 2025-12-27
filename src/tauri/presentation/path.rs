@@ -1,4 +1,3 @@
-use anyhow::{Ok, Result};
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use tauri::Manager;
@@ -51,36 +50,70 @@ pub struct SystemDirs {
     pub temp_dir: PathBuf,
 }
 
-pub fn app_dirs(handle: tauri::AppHandle) -> Result<AppDirs> {
+impl Default for AppDirs {
+    fn default() -> Self {
+        Self {
+            config_dir: PathBuf::new(),
+            data_dir: PathBuf::new(),
+            cache_dir: PathBuf::new(),
+            log_dir: PathBuf::new(),
+            local_data_dir: PathBuf::new(),
+        }
+    }
+}
+
+impl Default for SystemDirs {
+    fn default() -> Self {
+        Self {
+            config_dir: PathBuf::new(),
+            data_dir: PathBuf::new(),
+            local_data_dir: PathBuf::new(),
+            desktop_dir: PathBuf::new(),
+            document_dir: PathBuf::new(),
+            download_dir: PathBuf::new(),
+            executable_dir: PathBuf::new(),
+            font_dir: PathBuf::new(),
+            home_dir: PathBuf::new(),
+            picture_dir: PathBuf::new(),
+            runtime_dir: PathBuf::new(),
+            template_dir: PathBuf::new(),
+            video_dir: PathBuf::new(),
+            resource_dir: PathBuf::new(),
+            temp_dir: PathBuf::new(),
+        }
+    }
+}
+
+pub fn app_dirs(handle: tauri::AppHandle) -> Result<AppDirs, String> {
     let path = handle.path();
 
     Ok(AppDirs {
-        config_dir: path.app_config_dir()?,
-        data_dir: path.app_data_dir()?,
-        cache_dir: path.app_cache_dir()?,
-        log_dir: path.app_log_dir()?,
-        local_data_dir: path.app_local_data_dir()?,
+        config_dir: path.app_config_dir().map_err(|e| e.to_string())?,
+        data_dir: path.app_data_dir().map_err(|e| e.to_string())?,
+        cache_dir: path.app_cache_dir().map_err(|e| e.to_string())?,
+        log_dir: path.app_log_dir().map_err(|e| e.to_string())?,
+        local_data_dir: path.app_local_data_dir().map_err(|e| e.to_string())?,
     })
 }
 
-pub fn system_dirs(handle: tauri::AppHandle) -> Result<SystemDirs> {
+pub fn system_dirs(handle: tauri::AppHandle) -> Result<SystemDirs, String> {
     let path = handle.path();
 
     Ok(SystemDirs {
-        config_dir: path.config_dir()?,
-        data_dir: path.data_dir()?,
-        local_data_dir: path.local_data_dir()?,
-        desktop_dir: path.desktop_dir()?,
-        document_dir: path.document_dir()?,
-        download_dir: path.download_dir()?,
-        executable_dir: path.executable_dir()?,
-        font_dir: path.font_dir()?,
-        home_dir: path.home_dir()?,
-        picture_dir: path.picture_dir()?,
-        runtime_dir: path.runtime_dir()?,
-        template_dir: path.template_dir()?,
-        video_dir: path.video_dir()?,
-        resource_dir: path.resource_dir()?,
-        temp_dir: path.temp_dir()?,
+        config_dir: path.config_dir().map_err(|e| e.to_string())?,
+        data_dir: path.data_dir().map_err(|e| e.to_string())?,
+        local_data_dir: path.local_data_dir().map_err(|e| e.to_string())?,
+        desktop_dir: path.desktop_dir().map_err(|e| e.to_string())?,
+        document_dir: path.document_dir().map_err(|e| e.to_string())?,
+        download_dir: path.download_dir().map_err(|e| e.to_string())?,
+        executable_dir: path.executable_dir().map_err(|e| e.to_string())?,
+        font_dir: path.font_dir().map_err(|e| e.to_string())?,
+        home_dir: path.home_dir().map_err(|e| e.to_string())?,
+        picture_dir: path.picture_dir().map_err(|e| e.to_string())?,
+        runtime_dir: path.runtime_dir().map_err(|e| e.to_string())?,
+        template_dir: path.template_dir().map_err(|e| e.to_string())?,
+        video_dir: path.video_dir().map_err(|e| e.to_string())?,
+        resource_dir: path.resource_dir().map_err(|e| e.to_string())?,
+        temp_dir: path.temp_dir().map_err(|e| e.to_string())?,
     })
 }
