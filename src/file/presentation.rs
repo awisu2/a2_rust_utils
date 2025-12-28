@@ -54,7 +54,7 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
         ),
         Err(_) => (0, 0),
     };
-    let parnt_path = pathbuf.parent().unwrap().to_path_buf();
+    let dir = pathbuf.parent().unwrap().to_path_buf();
 
     FileInfo {
         path: pathbuf,
@@ -66,7 +66,8 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
         is_image: is_image,
         modified: modified,
         created: created,
-        parent_path: parnt_path,
+        dir: dir,
+        children: Vec::new(),
     }
 }
 
@@ -89,10 +90,11 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
     let is_movie = is_movie(extension.as_str());
     let is_image = is_image(extension.as_str());
 
-    let parent_path = pathbuf.parent().unwrap().to_path_buf();
+    let dir = pathbuf.parent().unwrap().to_path_buf();
 
     Ok(FileInfo {
         path: pathbuf,
+        dir: dir,
         file_name: file_name,
         extension: extension,
         is_dir: file_type.is_dir(),
@@ -101,7 +103,7 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
         is_image: is_image,
         modified: modified,
         created: created,
-        parent_path: parent_path,
+        children: Vec::new(),
     })
 }
 

@@ -1,5 +1,7 @@
 # History
 
+- 0.1.34:
+  - add children to FileInfo
 - 0.1.33:
   - remove tauri/filer that only can implment in srt-tauri
 - 0.1.32:
