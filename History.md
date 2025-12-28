@@ -1,5 +1,8 @@
 # History
 
+- 0.1.35:
+  - remove dhildern to FileInfo
+  - add FileEntry<T> for manage addtional type manage
 - 0.1.34:
   - add children to FileInfo
 - 0.1.33:

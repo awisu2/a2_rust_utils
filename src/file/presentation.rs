@@ -67,7 +67,6 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
         modified: modified,
         created: created,
         dir: dir,
-        children: Vec::new(),
     }
 }
 
@@ -103,7 +102,6 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
         is_image: is_image,
         modified: modified,
         created: created,
-        children: Vec::new(),
     })
 }
 
