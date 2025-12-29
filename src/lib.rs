@@ -1,3 +1,4 @@
+pub mod display;
 pub mod file;
 pub mod hello;
 pub mod images;

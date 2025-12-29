@@ -1,5 +1,7 @@
 # History
 
+- 0.1.36 (25-12-29):
+  - add display::size
 - 0.1.35:
   - remove dhildern to FileInfo
   - add FileEntry<T> for manage addtional type manage
