@@ -1,3 +1,5 @@
+use std::fs::File;
+
 use anyhow::{anyhow, Result};
 use image::{DynamicImage, GenericImageView, ImageBuffer, ImageResult, Rgb};
 
@@ -129,7 +131,10 @@ pub fn resize_aspect_ratio(img: &DynamicImage, max_width: u32, max_height: u32) 
     let new_w = (w as f64 * ratio) as u32;
     let new_h = (h as f64 * ratio) as u32;
 
-    img.resize_exact(new_w, new_h, image::imageops::FilterType::Lanczos3)
+    // Triangle: quick
+    // Lanczos3: high quality
+    // CatmullRom: middle quality
+    img.resize_exact(new_w, new_h, image::imageops::FilterType::Triangle)
 }
 
 // save dynamicImage
@@ -137,4 +142,17 @@ pub fn save_image(img: &DynamicImage, path: &str) -> Result<()> {
     // fix non-existing dir
     let _ = std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap());
     img.save(path).map_err(|e| anyhow!(e))
+}
+
+pub fn save_jpeg_80(img: &DynamicImage, path: &str) -> Result<()> {
+    // fix non-existing dir
+    let _ = std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap());
+
+    let file = File::create(path)?;
+    let mut writer = std::io::BufWriter::new(file);
+
+    let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(&mut writer, 80);
+    encoder.encode_image(img).map_err(|e| anyhow!(e))?;
+
+    Ok(())
 }

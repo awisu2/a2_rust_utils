@@ -1,6 +1,7 @@
 # History
 
-- 25-12-30 (0.1.37):
+- 25-12-30 (0.1.37 - 0.1.38):
+  - add save_jpeg_80 for quick save
   - add resize_aspect_ratio, save_image to images
 - 25-12-29 (0.1.36):
   - add display::size
