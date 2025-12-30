@@ -1,6 +1,8 @@
 # History
 
-- 0.1.36 (25-12-29):
+- 25-12-30 (0.1.37):
+  - add resize_aspect_ratio, save_image to images
+- 25-12-29 (0.1.36):
   - add display::size
 - 0.1.35:
   - remove dhildern to FileInfo

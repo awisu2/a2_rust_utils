@@ -116,3 +116,25 @@ pub fn crop_center(img: &DynamicImage, width: u32, height: u32) -> DynamicImage 
 
     img.crop_imm(_x, _y, _w, _h)
 }
+
+// resize with width and height that not change aspect ratio
+pub fn resize_aspect_ratio(img: &DynamicImage, max_width: u32, max_height: u32) -> DynamicImage {
+    let (w, h) = img.dimensions();
+
+    let ratio_w = max_width as f64 / w as f64;
+    let ratio_h = max_height as f64 / h as f64;
+
+    let ratio = ratio_w.min(ratio_h);
+
+    let new_w = (w as f64 * ratio) as u32;
+    let new_h = (h as f64 * ratio) as u32;
+
+    img.resize_exact(new_w, new_h, image::imageops::FilterType::Lanczos3)
+}
+
+// save dynamicImage
+pub fn save_image(img: &DynamicImage, path: &str) -> Result<()> {
+    // fix non-existing dir
+    let _ = std::fs::create_dir_all(std::path::Path::new(path).parent().unwrap());
+    img.save(path).map_err(|e| anyhow!(e))
+}
