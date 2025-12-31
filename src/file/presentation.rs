@@ -54,7 +54,10 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
         ),
         Err(_) => (0, 0),
     };
-    let dir = pathbuf.parent().unwrap().to_path_buf();
+    let dir = pathbuf
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_default();
 
     FileInfo {
         path: pathbuf,

@@ -1,5 +1,13 @@
 # History
 
+## Todos
+
+- [] unwrap 系なるべく駆逐
+
+## Completed
+
+- 25-12-30 (0.1.39):
+  - fix pathbuf unwarap
 - 25-12-30 (0.1.37 - 0.1.38):
   - add save_jpeg_80 for quick save
   - add resize_aspect_ratio, save_image to images
