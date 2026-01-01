@@ -2,11 +2,12 @@ use anyhow::{anyhow, Context, Result};
 use std::fs::{self, DirEntry, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::file::domain::FileInfo;
 
 use crate::path::{osstr_opt_to_string, osstr_to_string};
+use crate::time::Timestamp;
+use std::io;
 
 /// Read directory and return file infos.  
 /// It include all type (file, dirctory, symlink, etc...) infos
@@ -44,16 +45,10 @@ fn pathbuf_to_fileinfo(pathbuf: PathBuf) -> FileInfo {
     let extension = osstr_opt_to_string(path.extension());
 
     let is_dir = path.is_dir();
-    let is_movie = is_movie(extension.as_str());
-    let is_image = is_image(extension.as_str());
+    let is_movie = is_movie(&extension);
+    let is_image = is_image(&extension);
+    let (modified, created) = convert_meta(pathbuf.metadata());
 
-    let (modified, created) = match pathbuf.metadata() {
-        Ok(v) => (
-            system_time_to_u64(v.modified().unwrap()),
-            system_time_to_u64(v.created().unwrap()),
-        ),
-        Err(_) => (0, 0),
-    };
     let dir = pathbuf
         .parent()
         .map(|p| p.to_path_buf())
@@ -78,13 +73,7 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
 
     let file_name = osstr_to_string(&entry.file_name());
 
-    let (modified, created) = match entry.metadata() {
-        Ok(v) => (
-            system_time_to_u64(v.modified().unwrap()),
-            system_time_to_u64(v.created().unwrap()),
-        ),
-        Err(_) => (0, 0),
-    };
+    let (modified, created) = convert_meta(entry.metadata());
 
     let pathbuf = entry.path();
     let path = pathbuf.as_path();
@@ -108,6 +97,20 @@ fn direntry_to_fileinfo(entry: DirEntry) -> Result<FileInfo> {
     })
 }
 
+// get info from metadata
+// Note: Errの場合気にせず0を返す 運用
+fn convert_meta(meta: io::Result<fs::Metadata>) -> (u64, u64) {
+    let _meta = match meta {
+        Ok(m) => m,
+        Err(_) => return (0, 0),
+    };
+
+    // get modified and created time
+    let modified = _meta.modified().map(Timestamp::from_system_time).unwrap_or(0);
+    let created = _meta.created().map(Timestamp::from_system_time).unwrap_or(0);
+    (modified, created)
+}
+
 fn is_movie(extension: &str) -> bool {
     return extension == "mp4"
         || extension == "mpeg"
@@ -122,14 +125,6 @@ fn is_image(extension: &str) -> bool {
         || extension == "gif"
         || extension == "webp"
         || extension == "png";
-}
-
-fn system_time_to_u64(system_time: SystemTime) -> u64 {
-    let duration = match system_time.duration_since(UNIX_EPOCH) {
-        Ok(v) => v,
-        Err(_) => return 0,
-    };
-    duration.as_secs()
 }
 
 pub fn rename(from: &str, to: &str) -> Result<()> {

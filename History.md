@@ -12,6 +12,9 @@
 
 ## Completed
 
+- 26-01-01 (0.1.40):
+  - file info 内でのエラー解決をリファクタ
+    - および TimeStamp を struct で管理
 - 25-12-30 (0.1.39):
   - fix pathbuf unwarap 親ディレクトリが取れないときにエラーを出してた
 - 25-12-30 (0.1.37 - 0.1.38):
@@ -21,7 +24,7 @@
   - add display::size
 - 0.1.35:
   - remove dhildern to FileInfo
-  - add FileEntry<T> for manage addtional type manage
+  - add `FileEntry<T>` for manage addtional type manage
 - 0.1.34:
   - add children to FileInfo
 - 0.1.33:
