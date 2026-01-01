@@ -13,6 +13,7 @@
 ## Completed
 
 - 26-01-01 (0.1.40):
+  - add from to file_info
   - file info 内でのエラー解決をリファクタ
     - および TimeStamp を struct で管理
 - 25-12-30 (0.1.39):

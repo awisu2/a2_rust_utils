@@ -17,9 +17,3 @@ pub fn path_opt_to_string(path: Option<&Path>) -> String {
 pub fn osstr_to_string(str: &OsStr) -> String {
     str.to_string_lossy().into_owned()
 }
-
-// convert Option<&OsStr> to String
-// this is for path.extension() and path.file_name()
-pub fn osstr_opt_to_string(str: Option<&OsStr>) -> String {
-    str.map(|n| osstr_to_string(n)).unwrap_or_default()
-}
