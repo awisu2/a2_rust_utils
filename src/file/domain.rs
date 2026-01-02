@@ -1,5 +1,3 @@
-mod file_entry;
-mod file_info;
-
-pub use file_entry::*;
-pub use file_info::*;
+pub(crate) mod file_entry;
+pub(crate) mod file_info;
+pub(crate) mod file_meta;

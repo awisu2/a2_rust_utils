@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{fs::DirEntry, path::PathBuf};
 
-use crate::file::{convert_meta, is_movie, is_image};
+use crate::file::{domain::file_meta::FileMeta, from_result_meta, osstr_opt_into_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -11,13 +11,7 @@ pub struct FileInfo {
     pub file_name: String,
     pub extension: String,
 
-    pub modified: u64,
-    pub created: u64,
-
-    pub is_dir: bool,
-    pub is_file: bool,
-    pub is_image: bool,
-    pub is_movie: bool,
+    pub meta: FileMeta,
 }
 
 impl Default for FileInfo {
@@ -27,12 +21,7 @@ impl Default for FileInfo {
             dir: PathBuf::new(),
             file_name: String::new(),
             extension: String::new(),
-            is_dir: false,
-            is_file: false,
-            is_image: false,
-            is_movie: false,
-            modified: 0,
-            created: 0,
+            meta: FileMeta::default(),
         };
         info
     }
@@ -41,30 +30,23 @@ impl Default for FileInfo {
 impl From<PathBuf> for FileInfo {
     fn from(pathbuf: PathBuf) -> Self {
         let path = pathbuf.as_path();
-        let file_name = path.file_name().unwrap_or_default().to_string_lossy().into_owned();
-        let extension = path.extension().unwrap_or_default().to_string_lossy().into_owned();
-
-        let is_dir = path.is_dir();
-        let is_movie = is_movie(&extension);
-        let is_image = is_image(&extension);
-        let (modified, created) = convert_meta(pathbuf.metadata());
 
         let dir = pathbuf
             .parent()
             .map(|p| p.to_path_buf())
             .unwrap_or_default();
+        let file_name = osstr_opt_into_string(path.file_name());
+        let extension = osstr_opt_into_string(path.extension());
+
+        let meta = pathbuf.metadata();
+        let file_meta = from_result_meta(meta);
 
         FileInfo {
             path: pathbuf.clone(),
+            dir: dir,
             file_name,
             extension: extension,
-            is_dir: is_dir,
-            is_file: path.is_file(),
-            is_movie: is_movie,
-            is_image: is_image,
-            modified: modified,
-            created: created,
-            dir: dir,
+            meta: file_meta,
         }
     }
 }

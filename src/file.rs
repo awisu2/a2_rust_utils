@@ -1,5 +1,5 @@
-mod domain;
-mod infrastratcture;
+pub(crate) mod application;
+pub(crate) mod domain;
+pub mod prelude;
 
-pub use domain::*;
-pub use infrastratcture::*;
+pub use prelude::*;
