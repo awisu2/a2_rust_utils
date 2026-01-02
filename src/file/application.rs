@@ -47,25 +47,7 @@ pub fn from_result_meta(meta: io::Result<fs::Metadata>) -> FileMeta {
         Ok(m) => m,
         Err(_) => return FileMeta::default(),
     };
-    from_meta(_meta)
-}
-
-pub fn from_meta(meta: fs::Metadata) -> FileMeta {
-    // get modified and created time
-    let modified = meta
-        .modified()
-        .map(Timestamp::from_system_time)
-        .unwrap_or(0);
-    let created = meta.created().map(Timestamp::from_system_time).unwrap_or(0);
-
-    FileMeta {
-        is_dir: meta.is_dir(),
-        is_file: meta.is_file(),
-        is_symlink: meta.is_symlink(),
-        modified,
-        created,
-        size: meta.len(),
-    }
+    FileMeta::from(_meta)
 }
 
 pub fn rename(from: &str, to: &str) -> Result<()> {
