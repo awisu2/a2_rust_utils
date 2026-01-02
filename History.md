@@ -12,6 +12,10 @@
 
 ## Completed
 
+- 26-01-02 (0.1.41):
+  - file のリファクタリング, is_dir や is_file に IO コストが掛かっているということで、meta から取得するように変更
+    - is_dir, is_file は実態チェックだから、meta だと一括チェックしている
+    - またそれに合わせて混同しないように,FileMeta も新設して変更
 - 26-01-01 (0.1.40):
   - add from to file_info
   - file info 内でのエラー解決をリファクタ
