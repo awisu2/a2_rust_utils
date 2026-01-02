@@ -1,7 +1,9 @@
 use serde::{Deserialize, Serialize};
 use std::{fs::DirEntry, path::PathBuf};
 
-use crate::file::{domain::file_meta::FileMeta, from_result_meta, osstr_opt_into_string};
+use crate::file::{
+    domain::file_meta::FileMeta, from_result_meta, is_image, is_movie, osstr_opt_into_string,
+};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -12,6 +14,9 @@ pub struct FileInfo {
     pub extension: String,
 
     pub meta: FileMeta,
+
+    pub is_image: bool,
+    pub is_movie: bool,
 }
 
 impl Default for FileInfo {
@@ -22,6 +27,8 @@ impl Default for FileInfo {
             file_name: String::new(),
             extension: String::new(),
             meta: FileMeta::default(),
+            is_image: false,
+            is_movie: false,
         };
         info
     }
@@ -40,6 +47,8 @@ impl From<PathBuf> for FileInfo {
 
         let meta = pathbuf.metadata();
         let file_meta = from_result_meta(meta);
+        let is_image_ = is_image(&extension);
+        let is_movie_ = is_movie(&extension);
 
         FileInfo {
             path: pathbuf.clone(),
@@ -47,6 +56,8 @@ impl From<PathBuf> for FileInfo {
             file_name,
             extension: extension,
             meta: file_meta,
+            is_image: is_image_,
+            is_movie: is_movie_,
         }
     }
 }
