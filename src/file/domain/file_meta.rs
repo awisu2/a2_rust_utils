@@ -1,4 +1,4 @@
-use std::fs::Metadata;
+use std::{fs::Metadata, path::Path};
 
 use serde::{Deserialize, Serialize};
 
@@ -44,6 +44,15 @@ impl From<Metadata> for FileMeta {
             modified,
             created,
             size: meta.len(),
+        }
+    }
+}
+
+impl From<&Path> for FileMeta {
+    fn from(path_buf: &Path) -> Self {
+        match path_buf.metadata() {
+            Ok(meta) => FileMeta::from(meta),
+            Err(_) => FileMeta::default(),
         }
     }
 }

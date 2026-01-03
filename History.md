@@ -12,6 +12,8 @@
 
 ## Completed
 
+- 26-01-03 (0.1.44):
+  - refactor FileMeta and FileInfo convert
 - 26-01-02 (0.1.41-0.1.43):
   - fix permission
   - file のリファクタリング, is_dir や is_file に IO コストが掛かっているということで、meta から取得するように変更

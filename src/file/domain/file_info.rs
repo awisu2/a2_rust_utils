@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{fs::DirEntry, path::PathBuf};
 
-use crate::file::{
-    domain::file_meta::FileMeta, from_result_meta, is_image, is_movie, osstr_opt_into_string,
-};
+use crate::file::{domain::file_meta::FileMeta, is_image, is_movie, osstr_opt_into_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -44,18 +42,17 @@ impl From<PathBuf> for FileInfo {
             .unwrap_or_default();
         let file_name = osstr_opt_into_string(path.file_name());
         let extension = osstr_opt_into_string(path.extension());
-
-        let meta = pathbuf.metadata();
-        let file_meta = from_result_meta(meta);
         let is_image_ = is_image(&extension);
         let is_movie_ = is_movie(&extension);
+
+        let meta = FileMeta::from(path);
 
         FileInfo {
             path: pathbuf.clone(),
             dir: dir,
             file_name,
             extension: extension,
-            meta: file_meta,
+            meta: meta,
             is_image: is_image_,
             is_movie: is_movie_,
         }

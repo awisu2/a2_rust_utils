@@ -1,11 +1,10 @@
 use anyhow::{anyhow, Result};
 use std::ffi::OsStr;
 use std::fs::{self, File};
-use std::io::{self, Write};
+use std::io::Write;
 use std::path::{Path, PathBuf};
 
-use crate::file::domain::file_meta::FileMeta;
-use crate::{file::domain::file_info::FileInfo, time::Timestamp};
+use crate::file::domain::file_info::FileInfo;
 
 static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
@@ -37,17 +36,6 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
 /// File existence check
 pub fn is_exists(path: &str) -> bool {
     Path::new(path).exists()
-}
-
-// get info from metadata
-// Note: Errの場合気にせず0を返す 運用
-// is_dir, is_file, is_symlink, modified, created, size
-pub fn from_result_meta(meta: io::Result<fs::Metadata>) -> FileMeta {
-    let _meta = match meta {
-        Ok(m) => m,
-        Err(_) => return FileMeta::default(),
-    };
-    FileMeta::from(_meta)
 }
 
 pub fn rename(from: &str, to: &str) -> Result<()> {
