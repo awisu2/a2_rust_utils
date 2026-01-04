@@ -126,7 +126,7 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
 
-        let mut gateway = SqliteGateway::new(db_path);
+        let gateway = SqliteGateway::new(db_path);
         let _ = gateway.open();
 
         let (sql, params) = SampleData::create_table_sql();
