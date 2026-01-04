@@ -84,7 +84,7 @@ impl Default for SystemDirs {
     }
 }
 
-pub fn app_dirs(handle: tauri::AppHandle) -> Result<AppDirs, String> {
+pub fn app_dirs(handle: &tauri::AppHandle) -> Result<AppDirs, String> {
     let path = handle.path();
 
     Ok(AppDirs {
@@ -96,7 +96,7 @@ pub fn app_dirs(handle: tauri::AppHandle) -> Result<AppDirs, String> {
     })
 }
 
-pub fn system_dirs(handle: tauri::AppHandle) -> Result<SystemDirs, String> {
+pub fn system_dirs(handle: &tauri::AppHandle) -> Result<SystemDirs, String> {
     let path = handle.path();
 
     Ok(SystemDirs {
