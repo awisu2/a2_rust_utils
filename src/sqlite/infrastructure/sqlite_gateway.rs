@@ -18,16 +18,20 @@ impl SqliteGateway {
     }
 
     // impl: genericを省略する記述 本来は open<T: AsRef<Path>>(path: T) のように書く
-    pub fn open(&mut self) -> Result<()> {
+    pub fn open(&self) -> Result<()> {
         self.close()?;
 
-        let conn = Connection::open(&self.path)?;
-        self.conn = Mutex::new(Some(conn));
+        let path = self.path.clone();
+        let new_conn = Connection::open(path)?;
+
+        // borrow: MutexGuard を取得
+        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
+        guard.replace(new_conn);
 
         Ok(())
     }
 
-    pub fn close(&mut self) -> Result<()> {
+    pub fn close(&self) -> Result<()> {
         let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
         // take: Optionの中身を取り出してNoneにする。所有権も移動する。
         let conn = match guard.take() {
