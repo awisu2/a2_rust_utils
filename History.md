@@ -12,8 +12,8 @@
 
 ## Completed
 
-- 26-01-04 (0.1.45-0.1.49):
-  - AppHandle を参照で受け取るように変更
+- 26-01-04 (0.1.45-0.1.50):
+  - AppHandle を参照で受け取るように変更(Command は参照だとコンパイルエラー)
   - sqlite の open/close でも borrow/move が発生しないように修正
   - sqlite の Mutex 利用周りの見直しと簡単なリファクタ
   - remove job_executor(move to other repository) because that use tauri crate
