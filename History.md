@@ -12,7 +12,8 @@
 
 ## Completed
 
-- 26-01-04 (0.1.45):
+- 26-01-04 (0.1.45-0.1.46):
+  - remove job_executor(move to other repository) because that use tauri crate
   - job_executor の追加 (同時実行数制限付きで複数ジョブ実行)
     - added tokio:`cargo add tokio --features full`
 - 26-01-03 (0.1.44):
