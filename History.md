@@ -12,6 +12,9 @@
 
 ## Completed
 
+- 26-01-04 (0.1.45):
+  - job_executor の追加 (同時実行数制限付きで複数ジョブ実行)
+    - added tokio:`cargo add tokio --features full`
 - 26-01-03 (0.1.44):
   - refactor FileMeta and FileInfo convert
 - 26-01-02 (0.1.41-0.1.43):
