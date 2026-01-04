@@ -12,7 +12,8 @@
 
 ## Completed
 
-- 26-01-04 (0.1.45-0.1.46):
+- 26-01-04 (0.1.45-0.1.47):
+  - sqlite の Mutex 利用周りの見直しと簡単なリファクタ
   - remove job_executor(move to other repository) because that use tauri crate
   - job_executor の追加 (同時実行数制限付きで複数ジョブ実行)
     - added tokio:`cargo add tokio --features full`

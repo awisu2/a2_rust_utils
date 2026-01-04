@@ -1,39 +1,42 @@
 use anyhow::{anyhow, Ok, Result};
 use rusqlite::{types::Value, Connection, Row, ToSql};
-use std::{path::Path, sync::Mutex};
+use std::sync::Mutex;
 
 pub struct SqliteGateway {
     // 同時更新ができないので Mutex で保護
     // pathの確定タイミングが不明なため Option
     pub conn: Mutex<Option<Connection>>,
-    pub path: Option<String>,
-}
-
-impl Default for SqliteGateway {
-    fn default() -> Self {
-        SqliteGateway {
-            conn: Mutex::new(None),
-            path: None,
-        }
-    }
+    path: String,
 }
 
 impl SqliteGateway {
+    pub fn new(path: &str) -> Self {
+        SqliteGateway {
+            conn: Mutex::new(None),
+            path: path.to_string(),
+        }
+    }
+
     // impl: genericを省略する記述 本来は open<T: AsRef<Path>>(path: T) のように書く
-    pub fn open(&mut self, path: impl AsRef<Path>) -> Result<()> {
-        let conn = Connection::open(path.as_ref())?;
+    pub fn open(&mut self) -> Result<()> {
+        self.close()?;
+
+        let conn = Connection::open(&self.path)?;
         self.conn = Mutex::new(Some(conn));
-        self.path = Some(path.as_ref().to_string_lossy().to_string());
 
         Ok(())
     }
 
-    pub fn close(&mut self) -> anyhow::Result<()> {
-        let conn = self.take_conn()?;
-        conn.close().map_err(|(_, e)| anyhow!("{}", e))?;
+    pub fn close(&mut self) -> Result<()> {
+        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
+        // take: Optionの中身を取り出してNoneにする。所有権も移動する。
+        let conn = match guard.take() {
+            None => return Ok(()),
+            Some(conn) => conn,
+        };
 
-        self.conn = Mutex::new(None);
-        self.path = None;
+        conn.close()
+            .map_err(|_| anyhow!("Failed to close connection"))?;
 
         Ok(())
     }
@@ -41,7 +44,10 @@ impl SqliteGateway {
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
     pub fn execute(&self, sql: &str, params: &[Value]) -> Result<usize> {
         let refs = Self::map_values_to_refs(params);
-        self.with_conn(|conn| Ok(conn.execute(sql, refs.as_slice())?))
+        self.with_conn(|conn| {
+            let res = conn.execute(sql, refs.as_slice())?;
+            Ok(res)
+        })
     }
 
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
@@ -55,10 +61,14 @@ impl SqliteGateway {
         // self._select_all(sql, &refs, map)
 
         self.with_conn(|conn| {
+            // prepare: SQL文をコンパイルしてステートメントを作成
             let mut stmt = conn.prepare(sql)?;
+
+            // sqlを実行し、結果をカスタム処理(map変換)しつつイテレータで取得
             let it = stmt.query_map(refs.as_slice(), |row| map(row))?;
 
-            let mut out = Vec::new();
+            // Vecに変換して返す
+            let mut out = Vec::<T>::new();
             for x in it {
                 out.push(x?);
             }
@@ -86,19 +96,14 @@ impl SqliteGateway {
         values.iter().map(|v| v as &dyn ToSql).collect()
     }
 
-    fn with_conn<R>(&self, f: impl FnOnce(&mut Connection) -> Result<R>) -> Result<R> {
-        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
-        let conn = guard
-            .as_mut()
-            .ok_or_else(|| anyhow!("Connection is already closed"))?;
-        f(conn)
-    }
+    fn with_conn<R>(&self, f: impl FnOnce(&Connection) -> Result<R>) -> Result<R> {
+        let guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
+        let conn = match guard.as_ref() {
+            None => return Err(anyhow!("Connection is already closed")),
+            Some(c) => c,
+        };
 
-    fn take_conn(&self) -> Result<Connection> {
-        let mut guard = self.conn.lock().map_err(|e| anyhow!("{}", e))?;
-        guard
-            .take()
-            .ok_or_else(|| anyhow!("Connection is already closed"))
+        f(conn)
     }
 }
 
@@ -117,9 +122,8 @@ mod tests {
             std::fs::remove_file(db_path).unwrap();
         }
 
-        let mut gateway = SqliteGateway::default();
-
-        gateway.open(db_path).unwrap();
+        let mut gateway = SqliteGateway::new(db_path);
+        let _ = gateway.open();
 
         let (sql, params) = SampleData::create_table_sql();
         gateway.execute(&sql, &params).unwrap();
