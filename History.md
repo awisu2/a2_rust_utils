@@ -13,7 +13,7 @@
 ## Completed
 
 - 26-01-10 (26.1.1):
-  - version の管理を日付ベースに変更
+  - version の管理を日付ベースに変更 (year.month.version)
   - tauri 系の処理を削除 (a2-rust-tauri-src へ移動)
 - 26-01-04 (0.1.45-0.1.50):
   - AppHandle を参照で受け取るように変更(Command は参照だとコンパイルエラー)
