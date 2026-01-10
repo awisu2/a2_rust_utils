@@ -2,17 +2,10 @@
 
 ## Todos
 
-### SS Task
-
-### S Task
-
-- [] unwrap 系なるべく駆逐
-
-### A Task
-
 ## Completed
 
 - 26-01-10 (26.1.1):
+  - mod implementation back from my_mod.rs to my_mod/mod.rs
   - version の管理を日付ベースに変更 (year.month.version)
   - tauri 系の処理を削除 (a2-rust-tauri-src へ移動)
 - 26-01-04 (0.1.45-0.1.50):
