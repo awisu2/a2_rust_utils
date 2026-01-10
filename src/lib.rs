@@ -5,5 +5,4 @@ pub mod images;
 pub mod path;
 pub mod rwlock;
 pub mod sqlite;
-pub mod tauri;
 pub mod time;
