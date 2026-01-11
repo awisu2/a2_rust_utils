@@ -4,6 +4,8 @@
 
 ## Completed
 
+- 26-01-11 (26.1.2):
+  - sqlite select_one's result modify to `Result<Option<T>>`
 - 26-01-10 (26.1.1):
   - mod implementation back from my_mod.rs to my_mod/mod.rs
   - version の管理を日付ベースに変更 (year.month.version)

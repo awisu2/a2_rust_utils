@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Ok, Result};
+use anyhow::{anyhow, Result};
 use rusqlite::{types::Value, Connection, Row, ToSql};
 use std::sync::Mutex;
 
@@ -86,11 +86,12 @@ impl SqliteGateway {
         sql: &str,
         params: &[Value],
         map: impl FnOnce(&Row) -> rusqlite::Result<T>,
-    ) -> Result<T> {
+    ) -> Result<Option<T>> {
         let refs = Self::map_values_to_refs(params);
-        self.with_conn(|conn| {
-            let res = conn.query_row(sql, refs.as_slice(), map)?;
-            Ok(res)
+        self.with_conn(|conn| match conn.query_row(sql, refs.as_slice(), map) {
+            Ok(record) => Ok(Some(record)),
+            Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
+            Err(e) => Err(anyhow!(e)),
         })
     }
 
