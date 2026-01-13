@@ -4,6 +4,8 @@
 
 ## Completed
 
+- 26-01-13 (26.1.3):
+  - add `insert_row_id` to `sqlite_gateway` that return autoincrement id after insert.
 - 26-01-11 (26.1.2):
   - sqlite select_one's result modify to `Result<Option<T>>`
 - 26-01-10 (26.1.1):
