@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct SampleData {
-    pub id: i32,
+    pub id: i64,
     pub name: String,
-    pub age: i32,
+    pub age: i64,
 }
 
 const TABLE: &'static str = "SampleData";
@@ -38,12 +38,12 @@ impl SampleData {
         (&SELECT_ALL_SQL, vec![])
     }
 
-    pub fn select_by_id(id: i32) -> (&'static str, Vec<Value>) {
-        (&SELECT_BY_ID_SQL, vec![Value::Integer(id as i64)])
+    pub fn select_by_id(id: i64) -> (&'static str, Vec<Value>) {
+        (&SELECT_BY_ID_SQL, vec![Value::Integer(id)])
     }
 
-    pub fn delete_by_id(id: i32) -> (&'static str, Vec<Value>) {
-        (&DELETE_BY_ID_SQL, vec![Value::Integer(id as i64)])
+    pub fn delete_by_id(id: i64) -> (&'static str, Vec<Value>) {
+        (&DELETE_BY_ID_SQL, vec![Value::Integer(id)])
     }
 
     pub fn delete_all() -> (&'static str, Vec<Value>) {

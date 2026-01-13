@@ -54,6 +54,16 @@ impl SqliteGateway {
         })
     }
 
+    // execute insert and return latest inserted rowid
+    pub fn insert_row_id(&self, sql: &str, params: &[Value]) -> Result<i64> {
+        let refs = Self::map_values_to_refs(params);
+        self.with_conn(|conn| {
+            conn.execute(sql, refs.as_slice())?;
+            let id = conn.last_insert_rowid();
+            Ok(id)
+        })
+    }
+
     // &[&dyn ToSql] の lifetime管理が厳しいため、Value型受け取る
     pub fn select_all<T>(
         &self,
@@ -136,7 +146,14 @@ mod tests {
         let (sql, params) = SampleData::insert("Alice", 18);
         gateway.execute(&sql, &params).unwrap();
         let (sql, params) = SampleData::insert("Bob", 30);
-        gateway.execute(&sql, &params).unwrap();
+        let id = gateway.insert_row_id(&sql, &params).unwrap();
+
+        let (sql, params) = SampleData::select_by_id(id);
+        let row = gateway
+            .select_one(&sql, &params, SampleData::map_from_row)
+            .unwrap()
+            .unwrap();
+        assert_eq!("Bob", row.name);
 
         let (sql, params) = SampleData::select_all();
         let records: Vec<SampleData> = gateway
