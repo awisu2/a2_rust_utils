@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{fs::DirEntry, path::PathBuf};
 
-use crate::file::{domain::file_meta::FileMeta, is_image, is_movie, osstr_opt_into_string};
+use crate::file::{domain::file_meta::FileMeta, osstr_opt_into_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -60,5 +60,9 @@ impl From<DirEntry> for FileInfo {
 impl FileInfo {
     pub fn path_string(&self) -> String {
         self.path.to_string_lossy().into_owned()
+    }
+
+    pub fn dir_string(&self) -> String {
+        self.dir.to_string_lossy().into_owned()
     }
 }

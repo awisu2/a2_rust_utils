@@ -61,7 +61,7 @@ pub fn osstr_into_string(v: &OsStr) -> String {
 }
 
 pub fn osstr_opt_into_string(v: Option<&OsStr>) -> String {
-    osstr_into_string(v.unwrap_or_default())
+    v.map_or_else(String::new, osstr_into_string)
 }
 
 #[cfg(test)]
