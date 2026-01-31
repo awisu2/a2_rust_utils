@@ -4,6 +4,8 @@
 
 ## Completed
 
+- 26-01-14 (26.1.4):
+  - FileInfoの更新 meta内に is_image, is_movieフラグを移動, path_string() を追加
 - 26-01-13 (26.1.3):
   - add `insert_row_id` to `sqlite_gateway` that return autoincrement id after insert.
 - 26-01-11 (26.1.2):

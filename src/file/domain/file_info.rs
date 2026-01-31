@@ -12,9 +12,6 @@ pub struct FileInfo {
     pub extension: String,
 
     pub meta: FileMeta,
-
-    pub is_image: bool,
-    pub is_movie: bool,
 }
 
 impl Default for FileInfo {
@@ -25,8 +22,6 @@ impl Default for FileInfo {
             file_name: String::new(),
             extension: String::new(),
             meta: FileMeta::default(),
-            is_image: false,
-            is_movie: false,
         };
         info
     }
@@ -42,8 +37,6 @@ impl From<PathBuf> for FileInfo {
             .unwrap_or_default();
         let file_name = osstr_opt_into_string(path.file_name());
         let extension = osstr_opt_into_string(path.extension());
-        let is_image_ = is_image(&extension);
-        let is_movie_ = is_movie(&extension);
 
         let meta = FileMeta::from(path);
 
@@ -53,8 +46,6 @@ impl From<PathBuf> for FileInfo {
             file_name,
             extension: extension,
             meta: meta,
-            is_image: is_image_,
-            is_movie: is_movie_,
         }
     }
 }
@@ -63,5 +54,11 @@ impl From<DirEntry> for FileInfo {
     fn from(entry: DirEntry) -> Self {
         let path_buf = entry.path();
         path_buf.into()
+    }
+}
+
+impl FileInfo {
+    pub fn path_string(&self) -> String {
+        self.path.to_string_lossy().into_owned()
     }
 }
