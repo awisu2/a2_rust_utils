@@ -158,4 +158,28 @@ mod tests {
         std::fs::remove_file(format!("{}/{}", test_dir, test_file)).unwrap();
         std::fs::remove_dir(test_dir).unwrap();
     }
+
+    #[test]
+    fn test_file_info_dir_from_pathbuf() {
+        // generate test file
+        let test_dir = "test_dir";
+        std::fs::create_dir_all(test_dir).unwrap();
+
+        let pathbuf = PathBuf::from(test_dir);
+
+        let file_info = FileInfo::from(pathbuf);
+
+        assert_eq!(file_info.file_name, "test_dir");
+        assert_eq!(file_info.extension, "");
+        assert_eq!(file_info.is_file, false);
+        assert_eq!(file_info.is_image, false);
+        assert_eq!(file_info.is_movie, false);
+        assert_eq!(file_info.is_dir, true);
+        assert_eq!(file_info.path_string(), "test_dir");
+        assert_eq!(file_info.dir_string(), "");
+        assert_eq!(file_info.meta.is_some(), true);
+
+        // clean up
+        std::fs::remove_dir(test_dir).unwrap();
+    }
 }
