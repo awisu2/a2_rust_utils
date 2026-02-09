@@ -2,7 +2,14 @@
 
 ## Todos
 
-## Completed
+
+## 26-02
+
+- 26-02-09 (26.1.5):
+  - FileMetaをoptionにし、FileInfono生成コストを低減
+    - 具体的には read_dir で取得できる DirEntry からは is_dir, is_file, is_symlink が 取得できるため、meta取得を行わないようにした
+
+## 26-01
 
 - 26-01-14 (26.1.4):
   - FileInfoの更新 meta内に is_image, is_movieフラグを移動, path_string() を追加
