@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::FileType;
 use std::{fs::DirEntry, path::PathBuf};
 
+use crate::file::osstr_opt_into_string;
 use crate::file::{is_image, is_movie, FileMeta};
-use crate::file::{osstr_into_string, osstr_opt_into_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -81,6 +81,8 @@ impl From<PathBuf> for FileInfo {
         };
         let (is_file, is_image, is_movie) = file_type_to_info(file_type, &ext);
 
+        let meta = FileMeta::from(pathbuf.as_path());
+
         FileInfo {
             path: pathbuf.clone(),
             dir: pathbuf
@@ -95,7 +97,7 @@ impl From<PathBuf> for FileInfo {
             is_image: is_image,
             is_movie: is_movie,
 
-            meta: None,
+            meta: Some(meta),
         }
     }
 }
@@ -121,5 +123,39 @@ impl FileInfo {
 
     pub fn dir_string(&self) -> String {
         self.dir.to_string_lossy().into_owned()
+    }
+}
+
+// test
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // test from PathBuf
+    #[test]
+    fn test_file_info_from_pathbuf() {
+        // generate test file
+        let test_dir = "test_data";
+        let test_file = "image1.jpg";
+        std::fs::create_dir_all(test_dir).unwrap();
+        std::fs::write(format!("{}/{}", test_dir, test_file), b"test").unwrap();
+
+        let pathbuf = PathBuf::from(format!("{}/{}", test_dir, test_file));
+
+        let file_info = FileInfo::from(pathbuf);
+
+        assert_eq!(file_info.file_name, "image1.jpg");
+        assert_eq!(file_info.extension, "jpg");
+        assert_eq!(file_info.is_file, true);
+        assert_eq!(file_info.is_image, true);
+        assert_eq!(file_info.is_movie, false);
+        assert_eq!(file_info.is_dir, false);
+        assert_eq!(file_info.path_string(), "test_data/image1.jpg");
+        assert_eq!(file_info.dir_string(), "test_data");
+        assert_eq!(file_info.meta.is_some(), true);
+
+        // clean up
+        std::fs::remove_file(format!("{}/{}", test_dir, test_file)).unwrap();
+        std::fs::remove_dir(test_dir).unwrap();
     }
 }
