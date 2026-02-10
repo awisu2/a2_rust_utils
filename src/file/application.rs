@@ -33,6 +33,28 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
     Ok(vec)
 }
 
+pub fn read_dir_deep(dir: &str, deep: usize) -> Result<Vec<FileInfo>> {
+    read_dir_deep_(dir, deep, 0)
+}
+
+fn read_dir_deep_(dir: &str, max_deep: usize, deep: usize) -> Result<Vec<FileInfo>> {
+    if deep > max_deep {
+        return Ok(Vec::new());
+    }
+
+    let mut infos = read_dir(dir)?;
+    if deep < max_deep {
+        let mut children = Vec::<FileInfo>::new();
+        let dirs: Vec<&FileInfo> = infos.iter().filter(|info| info.is_dir).collect();
+        for dir in &dirs {
+            let children_ = read_dir_deep_(&dir.path_string(), max_deep, deep + 1)?;
+            children.extend(children_);
+        }
+        infos.extend(children);
+    }
+    return Ok(infos);
+}
+
 /// File existence check
 pub fn is_exists(path: &str) -> bool {
     Path::new(path).exists()
@@ -87,5 +109,25 @@ mod tests {
     fn test_read_dir() {
         let path: &str = "./local";
         let _ = read_dir(path);
+    }
+
+    #[test]
+    fn test_read_dir_deep() {
+        let test_dir = "test_read_dir_deep";
+        let sub_dir = "subdir";
+        let test_file = "file.txt";
+
+        // create test directory structure
+        std::fs::create_dir_all(format!("{}/{}", test_dir, sub_dir)).unwrap();
+        std::fs::write(format!("{}/{}", test_dir, test_file), b"test").unwrap();
+        std::fs::write(format!("{}/{}/{}", test_dir, sub_dir, test_file), b"test").unwrap();
+
+        let infos = crate::file::application::read_dir_deep(test_dir, 2).unwrap();
+
+        // There should be 4 entries: test_dir/, test_dir/file.txt, test_dir/subdir/, test_dir/subdir/file.txt
+        assert_eq!(infos.len(), 3);
+
+        // clean up
+        std::fs::remove_dir_all(test_dir).unwrap();
     }
 }

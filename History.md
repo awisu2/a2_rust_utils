@@ -5,6 +5,9 @@
 
 ## 26-02
 
+
+- 26-02-11 (26.1.7):
+  - add `read_dir_deep()`
 - 26-02-09 (26.1.5-26.1.6):
   - FileMetaをoptionにし、FileInfono生成コストを低減
     - 具体的には read_dir で取得できる DirEntry からは is_dir, is_file, is_symlink が 取得できるため、meta取得を行わないようにした
