@@ -7,6 +7,7 @@
 
 
 - 26-02-11 (26.2.2):
+  - sqlite version down for diesel
   - add `read_dir_deep()`
 - 26-02-09 (26.1.5-26.1.6):
   - FileMetaをoptionにし、FileInfono生成コストを低減
