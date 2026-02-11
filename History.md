@@ -6,7 +6,7 @@
 ## 26-02
 
 
-- 26-02-11 (26.2.2):
+- 26-02-11 (26.2.2-4):
   - remove sqlite. we can use library like `diesel`
   - sqlite version down for diesel
   - add `read_dir_deep()`
