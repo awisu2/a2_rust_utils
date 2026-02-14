@@ -18,6 +18,7 @@ pub struct FileInfo {
     pub is_symlink: bool,
     pub is_image: bool,
     pub is_movie: bool,
+    pub is_zip: bool,
 
     pub meta: Option<FileMeta>,
 }
@@ -34,6 +35,7 @@ impl Default for FileInfo {
             is_symlink: false,
             is_image: false,
             is_movie: false,
+            is_zip: false,
 
             meta: None,
         };
@@ -65,6 +67,7 @@ impl From<DirEntry> for FileInfo {
             is_symlink: file_type.is_symlink(),
             is_image: is_image,
             is_movie: is_movie,
+            is_zip: ext == "zip",
 
             meta: None,
         }
@@ -90,12 +93,13 @@ impl From<PathBuf> for FileInfo {
                 .map(|p| p.to_path_buf())
                 .unwrap_or_default(),
             file_name: osstr_opt_into_string(pathbuf.file_name()),
-            extension: ext,
+            extension: ext.clone(),
             is_dir: file_type.is_dir(),
             is_file: is_file,
             is_symlink: file_type.is_symlink(),
             is_image: is_image,
             is_movie: is_movie,
+            is_zip: ext == "zip",
 
             meta: Some(meta),
         }
@@ -150,6 +154,7 @@ mod tests {
         assert_eq!(file_info.is_image, true);
         assert_eq!(file_info.is_movie, false);
         assert_eq!(file_info.is_dir, false);
+        assert_eq!(file_info.is_zip, false);
         assert_eq!(file_info.path_string(), "test_data/image1.jpg");
         assert_eq!(file_info.dir_string(), "test_data");
         assert_eq!(file_info.meta.is_some(), true);
@@ -178,6 +183,7 @@ mod tests {
         assert_eq!(file_info.path_string(), "test_dir");
         assert_eq!(file_info.dir_string(), "");
         assert_eq!(file_info.meta.is_some(), true);
+        assert_eq!(file_info.is_zip, false);
 
         // clean up
         std::fs::remove_dir(test_dir).unwrap();
