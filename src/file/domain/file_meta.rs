@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::{fs::Metadata, path::Path};
 
 use serde::{Deserialize, Serialize};
 
@@ -29,7 +29,12 @@ impl From<&Path> for FileMeta {
             Ok(meta) => meta,
             Err(_) => return FileMeta::default(),
         };
+        FileMeta::from(&meta)
+    }
+}
 
+impl From<&Metadata> for FileMeta {
+    fn from(meta: &Metadata) -> Self {
         let modified = meta
             .modified()
             .map(Timestamp::from_system_time)
