@@ -134,7 +134,6 @@ impl FileInfo {
             .map(|e| e.to_string_ex().to_lowercase())
             .unwrap_or_default();
 
-        println!("FileInfo::from_pathbuf_ - path: {}, ext: {}", path_str, ext);
         let is_dir = path_str.ends_with("/") || path_str.ends_with(std::path::MAIN_SEPARATOR);
         let is_file = !is_dir;
 
