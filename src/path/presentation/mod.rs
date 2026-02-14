@@ -1,19 +1,9 @@
-use std::{ffi::OsStr, path::Path};
+use std::path::Path;
 
-// convert &Path to String.
-// Pathbuf also can use this function
-pub fn path_to_string(path: &Path) -> String {
-    path.to_string_lossy().into_owned()
-}
+use crate::file::PathEx;
 
 // convert Option<&Path> to String
 // this is for path.parent()
 pub fn path_opt_to_string(path: Option<&Path>) -> String {
-    path.map(|p| path_to_string(p)).unwrap_or_default()
-}
-
-// convert &OsStr to String
-// Osstring also can use this function
-pub fn osstr_to_string(str: &OsStr) -> String {
-    str.to_string_lossy().into_owned()
+    path.map(|p| p.to_string_ex()).unwrap_or_default()
 }

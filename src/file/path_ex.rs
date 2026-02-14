@@ -15,3 +15,19 @@ where
             .replace(DIR_SEPARATOR_WINDOWS, DIR_SEPARATOR)
     }
 }
+
+pub trait OptionPathEx {
+    fn to_string_ex(&self) -> String;
+}
+
+impl<T> OptionPathEx for Option<T>
+where
+    T: AsRef<std::ffi::OsStr>,
+{
+    fn to_string_ex(&self) -> String {
+        match self {
+            Some(v) => v.to_string_ex(),
+            None => String::new(),
+        }
+    }
+}

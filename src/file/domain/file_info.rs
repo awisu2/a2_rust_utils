@@ -50,13 +50,13 @@ impl From<DirEntry> for FileInfo {
         let pathbuf = entry.path();
         let file_type = entry.file_type().unwrap();
         let ext = match pathbuf.extension() {
-            Some(e) => e.to_string_lossy().to_lowercase(),
+            Some(e) => e.to_string_ex().to_lowercase(),
             None => String::new(),
         };
         let (is_dir, is_file, is_image, is_movie, is_zip) = file_type_to_info(file_type, &ext);
 
         FileInfo {
-            path: PathBuf::from(entry.path().to_string_lossy().to_string()),
+            path: entry.path(),
             dir: pathbuf
                 .parent()
                 .map(|p| p.to_path_buf())
@@ -78,7 +78,7 @@ impl From<DirEntry> for FileInfo {
 
 impl From<&Path> for FileInfo {
     fn from(pathbuf: &Path) -> Self {
-        FileInfo::from_pathbuf(pathbuf, false)
+        FileInfo::from_path(pathbuf)
     }
 }
 
@@ -107,29 +107,20 @@ impl FileInfo {
         self.dir.to_string_ex()
     }
 
-    pub fn from_str(path: &str, is_load_meta: bool) -> Self {
+    pub fn from_str(path: &str) -> Self {
         let pathbuf = PathBuf::from(path);
-        FileInfo::from_pathbuf(pathbuf.as_path(), is_load_meta)
+        FileInfo::from_path(pathbuf.as_path())
     }
 
-    pub fn from_pathbuf(path: &Path, is_load_meta: bool) -> Self {
-        let mut info = FileInfo::from_pathbuf_(path);
-        if is_load_meta {
-            info.load_meta();
-        }
-        info
-    }
+    pub fn from_path(path: &Path) -> Self {
+        let path_str = path.to_string_ex();
 
-    // only get from pathbuf, without load meta, for performance
-    fn from_pathbuf_(pathbuf: &Path) -> Self {
-        let path_str = pathbuf.to_string_ex();
-
-        let dir = match pathbuf.parent() {
+        let dir = match path.parent() {
             Some(p) => p.to_path_buf(),
             None => PathBuf::new(),
         };
 
-        let ext = pathbuf
+        let ext = path
             .extension()
             .map(|e| e.to_string_ex().to_lowercase())
             .unwrap_or_default();
@@ -142,9 +133,9 @@ impl FileInfo {
         let is_movie = is_movie(&ext);
 
         FileInfo {
-            path: pathbuf.to_path_buf(),
+            path: path.to_path_buf(),
             dir: dir,
-            file_name: osstr_opt_into_string(pathbuf.file_name()),
+            file_name: osstr_opt_into_string(path.file_name()),
             extension: ext,
 
             is_dir,
@@ -170,7 +161,7 @@ impl FileInfo {
         // get type from meta =====
         let file_type = meta.file_type();
         let ext = match pathbuf.extension() {
-            Some(e) => e.to_string_lossy().to_lowercase(),
+            Some(e) => e.to_string_ex().to_lowercase(),
             None => String::new(),
         };
         (
@@ -191,6 +182,8 @@ impl FileInfo {
 // test
 #[cfg(test)]
 mod tests {
+    use crate::file::path_ex::DIR_SEPARATOR;
+
     use super::*;
 
     // test from PathBuf
@@ -204,7 +197,7 @@ mod tests {
 
         let pathbuf = PathBuf::from(format!("{}/{}", test_dir, test_file));
 
-        let file_info = FileInfo::from_pathbuf(pathbuf.as_path(), true);
+        let file_info = FileInfo::from_path(pathbuf.as_path()).load_meta();
 
         assert_eq!(file_info.file_name, "image1.jpg");
         assert_eq!(file_info.extension, "jpg");
@@ -230,9 +223,9 @@ mod tests {
 
         let pathbuf = PathBuf::from(test_dir);
 
-        let file_info = FileInfo::from_pathbuf(pathbuf.as_path(), true);
+        let file_info = FileInfo::from_path(pathbuf.as_path());
 
-        assert_eq!(file_info.file_name, test_dir);
+        assert_eq!(file_info.file_name, "test_data_dir_");
         assert_eq!(file_info.extension, "");
         assert_eq!(file_info.is_file, false);
         assert_eq!(file_info.is_image, false);
@@ -240,7 +233,7 @@ mod tests {
         assert_eq!(file_info.is_dir, true);
         assert_eq!(file_info.path_string(), test_dir);
         assert_eq!(file_info.dir_string(), "");
-        assert_eq!(file_info.meta.is_some(), true);
+        assert_eq!(file_info.meta.is_none(), true);
         assert_eq!(file_info.is_zip, false);
 
         // clean up
