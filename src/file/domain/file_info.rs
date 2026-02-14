@@ -22,6 +22,8 @@ pub struct FileInfo {
     pub is_movie: bool,
     pub is_zip: bool,
 
+    pub in_zip: bool,
+
     pub meta: Option<FileMeta>,
 }
 
@@ -38,7 +40,7 @@ impl Default for FileInfo {
             is_image: false,
             is_movie: false,
             is_zip: false,
-
+            in_zip: false,
             meta: None,
         };
         info
@@ -70,6 +72,7 @@ impl From<DirEntry> for FileInfo {
             is_image: is_image,
             is_movie: is_movie,
             is_zip: is_zip,
+            in_zip: false,
 
             meta: None,
         }
@@ -141,6 +144,7 @@ impl FileInfo {
             is_image,
             is_movie,
             is_zip,
+            in_zip: false,
 
             meta: None,
         }
@@ -202,6 +206,7 @@ mod tests {
         assert_eq!(file_info.is_movie, false);
         assert_eq!(file_info.is_dir, false);
         assert_eq!(file_info.is_zip, false);
+        assert_eq!(file_info.in_zip, false);
         assert_eq!(file_info.path_string(), "test_data/image1.jpg");
         assert_eq!(file_info.dir_string(), "test_data");
         assert_eq!(file_info.meta.is_some(), true);
@@ -227,6 +232,7 @@ mod tests {
         assert_eq!(file_info.is_image, false);
         assert_eq!(file_info.is_movie, false);
         assert_eq!(file_info.is_dir, true);
+        assert_eq!(file_info.in_zip, false);
         assert_eq!(file_info.path_string(), test_dir);
         assert_eq!(file_info.dir_string(), "");
         assert_eq!(file_info.meta.is_none(), true);
