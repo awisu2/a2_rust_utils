@@ -5,7 +5,16 @@
 
 ## 26-02
 
-
+- 26-02-14 (26.2.5-self+14.1):
+  - versionを更に改良。日付があったら便利と思って+14.1見たいのをつけることにした
+    - version は `SemVer` という形式が必要らしく `n.n.n[-pre][+meta]` という形式とのこと
+      - `n` の部分は 数値かつ 0スタート不可
+      - `-pre`, `+meta` はオプションで `[0-9] [A-Z] [a-z] -` の範囲でフリーフォーマット
+        - ただし `-pre` はバージョン管理に含まれ、よくあるパターンが `-alpha, -beta, -preview, -rc.1` など
+          - rc: Release Candidate (ほぼ完成)
+  - map_err_str.rsを追加。
+    - 主には tauriの返却用で `anyhow::Result` を `Result<T, STring>` に変換する際に `map_err(|e| e.to_string())` と変換するのを避けるための処置
+    - traitを利用し様々な型に対応できそうなのでmapとして追加
 - 26-02-11 (26.2.2-4):
   - remove sqlite. we can use library like `diesel`
   - sqlite version down for diesel
