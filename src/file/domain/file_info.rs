@@ -161,12 +161,12 @@ impl FileInfo {
         }
     }
 
-    pub fn load_meta(&mut self) {
+    pub fn load_meta(&mut self) -> Self {
         // load meta (IO cost) =====
         let pathbuf = self.path.to_path_buf();
         let meta = match pathbuf.metadata() {
             Ok(meta) => meta,
-            Err(_) => return,
+            Err(_) => return self.clone(),
         };
 
         // get type from meta =====
@@ -186,6 +186,7 @@ impl FileInfo {
         // set loaded meta =====
         let meta = FileMeta::from(&meta);
         self.meta = Some(meta);
+        self.clone()
     }
 }
 
