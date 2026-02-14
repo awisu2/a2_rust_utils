@@ -5,7 +5,7 @@ use std::{fs::DirEntry, path::PathBuf};
 
 use crate::file::path_ex::PathEx;
 use crate::file::{is_image, is_movie, FileMeta};
-use crate::file::{is_zip, osstr_opt_into_string};
+use crate::file::{is_zip, OptionPathEx};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -61,7 +61,7 @@ impl From<DirEntry> for FileInfo {
                 .parent()
                 .map(|p| p.to_path_buf())
                 .unwrap_or_default(),
-            file_name: osstr_opt_into_string(pathbuf.file_name()),
+            file_name: pathbuf.file_name().to_string_ex(),
 
             extension: ext.clone(),
             is_dir: is_dir,
@@ -120,11 +120,7 @@ impl FileInfo {
             None => PathBuf::new(),
         };
 
-        let ext = path
-            .extension()
-            .map(|e| e.to_string_ex().to_lowercase())
-            .unwrap_or_default();
-
+        let ext = path.extension().to_string_ex().to_ascii_lowercase();
         let is_dir = path_str.ends_with("/") || path_str.ends_with(std::path::MAIN_SEPARATOR);
         let is_file = !is_dir;
 
@@ -135,7 +131,7 @@ impl FileInfo {
         FileInfo {
             path: path.to_path_buf(),
             dir: dir,
-            file_name: osstr_opt_into_string(path.file_name()),
+            file_name: path.file_name().to_string_ex(),
             extension: ext,
 
             is_dir,

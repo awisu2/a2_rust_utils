@@ -1,11 +1,9 @@
 use anyhow::{anyhow, Result};
-use std::ffi::OsStr;
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
 use crate::file::domain::file_info::FileInfo;
-use crate::file::PathEx;
 
 static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
@@ -82,10 +80,6 @@ pub fn write(path: PathBuf, data: &[u8]) -> Result<()> {
 
     let mut file = File::create(path.as_path())?;
     file.write_all(data).map_err(|e| anyhow!(e))
-}
-
-pub fn osstr_opt_into_string(v: Option<&OsStr>) -> String {
-    v.map_or_else(String::new, |v| v.to_string_ex())
 }
 
 #[cfg(test)]
