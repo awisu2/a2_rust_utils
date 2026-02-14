@@ -3,10 +3,9 @@ use std::fs::FileType;
 use std::path::Path;
 use std::{fs::DirEntry, path::PathBuf};
 
+use crate::file::path_ex::PathEx;
 use crate::file::{is_image, is_movie, FileMeta};
 use crate::file::{is_zip, osstr_opt_into_string};
-
-pub const DIR_SEPARATOR: &str = "/";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -57,7 +56,7 @@ impl From<DirEntry> for FileInfo {
         let (is_dir, is_file, is_image, is_movie, is_zip) = file_type_to_info(file_type, &ext);
 
         FileInfo {
-            path: PathBuf::from(entry.path().to_string_lossy().to_string() + DIR_SEPARATOR),
+            path: PathBuf::from(entry.path().to_string_lossy().to_string()),
             dir: pathbuf
                 .parent()
                 .map(|p| p.to_path_buf())
@@ -101,11 +100,11 @@ fn file_type_to_info(file_type: FileType, ext: &str) -> (bool, bool, bool, bool,
 
 impl FileInfo {
     pub fn path_string(&self) -> String {
-        self.path.to_string_lossy().into_owned()
+        self.path.to_string_ex()
     }
 
     pub fn dir_string(&self) -> String {
-        self.dir.to_string_lossy().into_owned()
+        self.dir.to_string_ex()
     }
 
     pub fn from_str(path: &str, is_load_meta: bool) -> Self {
@@ -123,7 +122,7 @@ impl FileInfo {
 
     // only get from pathbuf, without load meta, for performance
     fn from_pathbuf_(pathbuf: &Path) -> Self {
-        let path_str = pathbuf.to_string_lossy();
+        let path_str = pathbuf.to_string_ex();
 
         let dir = match pathbuf.parent() {
             Some(p) => p.to_path_buf(),
@@ -132,7 +131,7 @@ impl FileInfo {
 
         let ext = pathbuf
             .extension()
-            .map(|e| e.to_string_lossy().to_lowercase())
+            .map(|e| e.to_string_ex().to_lowercase())
             .unwrap_or_default();
 
         println!("FileInfo::from_pathbuf_ - path: {}, ext: {}", path_str, ext);
