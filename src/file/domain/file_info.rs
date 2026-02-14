@@ -3,6 +3,7 @@ use std::fs::FileType;
 use std::path::Path;
 use std::{fs::DirEntry, path::PathBuf};
 
+use crate::file::domain::zip_infos::ZipInfo;
 use crate::file::path_ex::PathEx;
 use crate::file::{is_image, is_movie, FileMeta};
 use crate::file::{is_zip, OptionPathEx};
@@ -22,9 +23,8 @@ pub struct FileInfo {
     pub is_movie: bool,
     pub is_zip: bool,
 
-    pub in_zip: bool,
-
     pub meta: Option<FileMeta>,
+    pub zip_info: Option<ZipInfo>,
 }
 
 impl Default for FileInfo {
@@ -40,7 +40,7 @@ impl Default for FileInfo {
             is_image: false,
             is_movie: false,
             is_zip: false,
-            in_zip: false,
+            zip_info: None,
             meta: None,
         };
         info
@@ -72,7 +72,7 @@ impl From<DirEntry> for FileInfo {
             is_image: is_image,
             is_movie: is_movie,
             is_zip: is_zip,
-            in_zip: false,
+            zip_info: None,
 
             meta: None,
         }
@@ -102,6 +102,10 @@ fn file_type_to_info(file_type: FileType, ext: &str) -> (bool, bool, bool, bool,
 }
 
 impl FileInfo {
+    pub fn in_zip(&self) -> bool {
+        self.zip_info.is_some()
+    }
+
     pub fn path_string(&self) -> String {
         self.path.to_string_ex()
     }
@@ -157,7 +161,8 @@ impl FileInfo {
             is_image,
             is_movie,
             is_zip,
-            in_zip: false,
+            zip_path: String::new(),
+            zip_entry_path: String::new(),
 
             meta: None,
         }
