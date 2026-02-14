@@ -1,9 +1,11 @@
 use anyhow::{anyhow, Result};
 use std::fs::{self, File};
-use std::io::Write;
+use std::io::{BufReader, Read, Write};
 use std::path::{Path, PathBuf};
+use zip::ZipArchive;
 
 use crate::file::domain::file_info::FileInfo;
+use crate::file::domain::zip_infos::ZipInfo;
 
 static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
@@ -80,6 +82,49 @@ pub fn write(path: PathBuf, data: &[u8]) -> Result<()> {
 
     let mut file = File::create(path.as_path())?;
     file.write_all(data).map_err(|e| anyhow!(e))
+}
+
+pub fn open_zip(path: &str) -> Result<ZipArchive<BufReader<File>>> {
+    let file = File::open(path)?;
+    let read = BufReader::new(file);
+    let archive = ZipArchive::new(read)?;
+    Ok(archive)
+}
+
+pub fn read_zip_entries(path: &str) -> Result<Vec<FileInfo>> {
+    let mut archive = open_zip(path)?;
+
+    let mut infos: Vec<FileInfo> = Vec::new();
+    for i in 0..archive.len() {
+        let entry = archive.by_index(i)?;
+
+        let name = entry.name();
+        let full_path = format!("{}/{}", path, name);
+
+        let mut info = FileInfo::from_str(&full_path);
+        info.zip_info = Some(ZipInfo {
+            path: path.to_string(),
+            entry_path: name.to_string(),
+        });
+        infos.push(info);
+    }
+
+    Ok(infos)
+}
+
+pub fn read_zip_entry(zip_path: &str, file_path: &str) -> Result<Vec<u8>> {
+    let mut archive = open_zip(zip_path)?;
+    read_zip_entry_by_buffer(&mut archive, file_path)
+}
+
+pub fn read_zip_entry_by_buffer(
+    buffer: &mut ZipArchive<BufReader<File>>,
+    file_path: &str,
+) -> Result<Vec<u8>> {
+    let mut file = buffer.by_name(file_path)?;
+    let mut buf = Vec::new();
+    file.read_to_end(&mut buf)?;
+    Ok(buf)
 }
 
 #[cfg(test)]

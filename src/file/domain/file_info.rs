@@ -161,13 +161,13 @@ impl FileInfo {
             is_image,
             is_movie,
             is_zip,
-            zip_path: String::new(),
-            zip_entry_path: String::new(),
 
             meta: None,
+            zip_info: None,
         }
     }
 
+    // metadata を読み込んで更に詳細な情報を取得(ただしIOコストあり)
     pub fn load_meta(&mut self) -> Self {
         // load meta (IO cost) =====
         let pathbuf = self.path.to_path_buf();
@@ -224,7 +224,7 @@ mod tests {
         assert_eq!(file_info.is_movie, false);
         assert_eq!(file_info.is_dir, false);
         assert_eq!(file_info.is_zip, false);
-        assert_eq!(file_info.in_zip, false);
+        assert_eq!(file_info.zip_info.is_none(), true);
         assert_eq!(file_info.path_string(), "test_data/image1.jpg");
         assert_eq!(file_info.dir_string(), "test_data");
         assert_eq!(file_info.meta.is_some(), true);
@@ -237,21 +237,22 @@ mod tests {
     #[test]
     fn test_file_info_dir_from_pathbuf() {
         // generate test file
-        let test_dir: &str = &(format!("test_data_dir_{}", DIR_SEPARATOR));
+        let test_dir_base: &str = "test_data_dir_";
+        let test_dir: &str = &(format!("{}{}", test_dir_base, DIR_SEPARATOR));
         std::fs::create_dir_all(test_dir).unwrap();
 
         let pathbuf = PathBuf::from(test_dir);
 
         let file_info = FileInfo::from_path(pathbuf.as_path());
 
-        assert_eq!(file_info.file_name, "test_data_dir_");
+        assert_eq!(file_info.file_name, test_dir_base);
         assert_eq!(file_info.extension, "");
         assert_eq!(file_info.is_file, false);
         assert_eq!(file_info.is_image, false);
         assert_eq!(file_info.is_movie, false);
         assert_eq!(file_info.is_dir, true);
-        assert_eq!(file_info.in_zip, false);
-        assert_eq!(file_info.path_string(), test_dir);
+        assert_eq!(file_info.zip_info.is_none(), true);
+        assert_eq!(file_info.path_string(), test_dir_base);
         assert_eq!(file_info.dir_string(), "");
         assert_eq!(file_info.meta.is_none(), true);
         assert_eq!(file_info.is_zip, false);

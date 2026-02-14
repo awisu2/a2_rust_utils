@@ -5,3 +5,7 @@ pub struct ZipInfo {
     pub path: String,
     pub entry_path: String,
 }
+
+impl ZipInfo {
+    pub fn open_zip() {}
+}
