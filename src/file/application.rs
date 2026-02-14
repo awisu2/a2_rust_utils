@@ -8,6 +8,7 @@ use crate::file::domain::file_info::FileInfo;
 
 static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
+static ZIP_EXTENSIONS: &[&str] = &["zip"];
 
 pub fn is_movie(extension: &str) -> bool {
     MOVIE_EXTENSIONS.contains(&extension)
@@ -15,6 +16,10 @@ pub fn is_movie(extension: &str) -> bool {
 
 pub fn is_image(extension: &str) -> bool {
     IMAGE_EXTENSIONS.contains(&extension)
+}
+
+pub fn is_zip(extension: &str) -> bool {
+    ZIP_EXTENSIONS.contains(&extension)
 }
 
 /// Read directory and return file infos.  

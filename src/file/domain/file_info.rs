@@ -2,8 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::fs::FileType;
 use std::{fs::DirEntry, path::PathBuf};
 
-use crate::file::osstr_opt_into_string;
 use crate::file::{is_image, is_movie, FileMeta};
+use crate::file::{is_zip, osstr_opt_into_string};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -51,7 +51,7 @@ impl From<DirEntry> for FileInfo {
             Some(e) => e.to_string_lossy().to_lowercase(),
             None => String::new(),
         };
-        let (is_file, is_image, is_movie) = file_type_to_info(file_type, &ext);
+        let (is_file, is_image, is_movie, is_zip) = file_type_to_info(file_type, &ext);
 
         FileInfo {
             path: entry.path(),
@@ -61,13 +61,13 @@ impl From<DirEntry> for FileInfo {
                 .unwrap_or_default(),
             file_name: osstr_opt_into_string(pathbuf.file_name()),
 
-            extension: ext,
+            extension: ext.clone(),
             is_dir: file_type.is_dir(),
             is_file: is_file,
             is_symlink: file_type.is_symlink(),
             is_image: is_image,
             is_movie: is_movie,
-            is_zip: ext == "zip",
+            is_zip: is_zip,
 
             meta: None,
         }
@@ -82,7 +82,7 @@ impl From<PathBuf> for FileInfo {
             Some(e) => e.to_string_lossy().to_lowercase(),
             None => String::new(),
         };
-        let (is_file, is_image, is_movie) = file_type_to_info(file_type, &ext);
+        let (is_file, is_image, is_movie, is_zip) = file_type_to_info(file_type, &ext);
 
         let meta = FileMeta::from(pathbuf.as_path());
 
@@ -99,25 +99,26 @@ impl From<PathBuf> for FileInfo {
             is_symlink: file_type.is_symlink(),
             is_image: is_image,
             is_movie: is_movie,
-            is_zip: ext == "zip",
+            is_zip: is_zip,
 
             meta: Some(meta),
         }
     }
 }
 
-fn file_type_to_info(file_type: FileType, ext: &str) -> (bool, bool, bool) {
+fn file_type_to_info(file_type: FileType, ext: &str) -> (bool, bool, bool, bool) {
     let is_file = file_type.is_file();
 
-    let (is_image, is_movie) = if is_file {
+    let (is_image, is_movie, is_zip) = if is_file {
         let (is_image, is_movie) = { (is_image(ext), is_movie(ext)) };
+        let is_zip = is_zip(ext);
 
-        (is_image, is_movie)
+        (is_image, is_movie, is_zip)
     } else {
-        (false, false)
+        (false, false, false)
     };
 
-    (is_file, is_image, is_movie)
+    (is_file, is_image, is_movie, is_zip)
 }
 
 impl FileInfo {
