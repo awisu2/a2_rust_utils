@@ -124,15 +124,28 @@ impl FileInfo {
         };
 
         let ext = path.extension().to_string_ex().to_ascii_lowercase();
-        let is_dir = path_str.ends_with("/") || path_str.ends_with(std::path::MAIN_SEPARATOR);
+        let is_entd_sep = path_str.ends_with("/") || path_str.ends_with(std::path::MAIN_SEPARATOR);
+        let is_dir = is_entd_sep;
         let is_file = !is_dir;
 
         let is_zip = is_zip(&ext);
         let is_image = is_image(&ext);
         let is_movie = is_movie(&ext);
 
+        // remove trailing separator for consistent path representation
+        let new_path = if is_entd_sep {
+            let new_path_str = path_str
+                .trim_end_matches("/")
+                .trim_end_matches(std::path::MAIN_SEPARATOR)
+                .to_string();
+            PathBuf::from(new_path_str)
+        } else {
+            path.to_path_buf()
+        };
+
         FileInfo {
-            path: path.to_path_buf(),
+            path: new_path,
+            // path: path.to_path_buf(),
             dir: dir,
             file_name: path.file_name().to_string_ex(),
             extension: ext,

@@ -1,6 +1,6 @@
 [package]
 name = "a2_utils"
-version = "26.2.10+15.1"
+version = "26.2.11+15.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
