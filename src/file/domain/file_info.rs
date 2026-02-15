@@ -79,6 +79,46 @@ impl From<DirEntry> for FileInfo {
     }
 }
 
+impl From<&ZipInfo> for FileInfo {
+    fn from(zip_info: &ZipInfo) -> Self {
+        let pathbuf = PathBuf::from(&zip_info.full_path());
+
+        let (ext, is_image, is_movie, is_zip) = if zip_info.is_file {
+            let ext = match Path::new(&zip_info.name).extension() {
+                Some(e) => e.to_string_ex().to_lowercase(),
+                None => String::new(),
+            };
+            let is_image = is_image(&ext);
+            let is_movie = is_movie(&ext);
+            let is_zip = is_zip(&ext);
+
+            (ext, is_image, is_movie, is_zip)
+        } else {
+            (String::new(), false, false, false)
+        };
+
+        FileInfo {
+            path: pathbuf.clone(),
+            dir: pathbuf
+                .parent()
+                .map(|p| p.to_path_buf())
+                .unwrap_or_default(),
+            file_name: pathbuf.file_name().to_string_ex(),
+
+            extension: ext,
+            is_dir: zip_info.is_dir,
+            is_file: zip_info.is_file,
+            is_symlink: false,
+            is_image: is_image,
+            is_movie: is_movie,
+            is_zip: is_zip,
+            zip_info: Some(zip_info.clone()),
+
+            meta: None,
+        }
+    }
+}
+
 impl From<&Path> for FileInfo {
     fn from(pathbuf: &Path) -> Self {
         FileInfo::from_path(pathbuf)
