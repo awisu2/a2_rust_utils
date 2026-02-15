@@ -19,7 +19,7 @@ impl ZipInfo {
         ZipInfo {
             index,
             zip_path: zip_path.to_string_ex(),
-            name: name.to_string_ex(),
+            name: name.to_string_ex().remove_ends_separator(),
             is_dir: false,
             is_file: false,
             size: 0,
@@ -34,6 +34,8 @@ impl ZipInfo {
     }
 
     pub fn full_path(&self) -> String {
-        format!("{}/{}", self.zip_path, self.name).to_string_ex()
+        format!("{}/{}", self.zip_path, self.name)
+            .to_string_ex()
+            .remove_ends_separator()
     }
 }
