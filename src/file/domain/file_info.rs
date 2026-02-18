@@ -187,6 +187,23 @@ impl FileInfo {
             path.to_path_buf()
         };
 
+        let delimiter = ".zip/";
+        let mut zip_info: Option<ZipInfo> = None;
+        if path_str.contains(delimiter) {
+            let (zip_path, name) = match path_str.split_once(delimiter) {
+                Some((zip_path, name)) => (format!("{zip_path}.zip"), name),
+                None => (path_str.clone(), ""),
+            };
+            zip_info = Some(ZipInfo {
+                index: 0,
+                zip_path: zip_path.to_string(),
+                name: name.to_string(),
+                is_dir: is_dir,
+                is_file: is_file,
+                size: 0,
+            });
+        }
+
         FileInfo {
             path: new_path,
             // path: path.to_path_buf(),
@@ -203,7 +220,7 @@ impl FileInfo {
             is_zip,
 
             meta: None,
-            zip_info: None,
+            zip_info: zip_info,
         }
     }
 
