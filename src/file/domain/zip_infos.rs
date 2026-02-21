@@ -18,9 +18,20 @@ impl ZipInfo {
     pub fn new(index: usize, zip_path: &str, name: &str) -> Self {
         ZipInfo {
             index,
-            zip_path: zip_path.to_string_ex(),
-            name: name.to_string_ex().remove_ends_separator(),
+            zip_path: zip_path.to_string_ex().remove_ends_separator(),
+            name: name.to_string_ex(),
             is_dir: false,
+            is_file: false,
+            size: 0,
+        }
+    }
+
+    pub fn new_dir(zip_path: &str, name: &str) -> Self {
+        ZipInfo {
+            index: 9999, // dummy
+            zip_path: zip_path.to_string_ex(),
+            name: name.to_string_ex(),
+            is_dir: true,
             is_file: false,
             size: 0,
         }
