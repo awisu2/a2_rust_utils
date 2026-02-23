@@ -7,11 +7,11 @@ use std::{
 use anyhow::Result;
 use zip::ZipArchive;
 
-use crate::file::{domain::zip_infos::ZipInfo, FileInfo, PathEx};
+use crate::file::{domain::zip_infos::ZipInfo, FileInfo, PathUtil};
 
-pub struct ZipEx {}
+pub struct ZipUtil {}
 
-impl ZipEx {
+impl ZipUtil {
     pub fn open(path: &str) -> Result<ZipArchive<BufReader<File>>> {
         let file = File::open(path)?;
         let read = BufReader::new(file);
@@ -96,10 +96,10 @@ mod tests {
     fn test_read_zip() {
         let path = "tests/data/sample.zip";
 
-        let (_, infos) = ZipEx::read(path).unwrap();
+        let (_, infos) = ZipUtil::read(path).unwrap();
         assert!(infos.len() > 0);
 
-        let (_, infos) = ZipEx::read_file_infos(path).unwrap();
+        let (_, infos) = ZipUtil::read_file_infos(path).unwrap();
         assert!(infos.len() > 0);
     }
 }

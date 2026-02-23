@@ -3,7 +3,7 @@ use std::{fs::File, io::BufReader};
 use serde::{Deserialize, Serialize};
 use zip::read::ZipFile;
 
-use crate::file::PathEx;
+use crate::file::PathUtil;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ZipInfo {

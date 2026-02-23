@@ -4,4 +4,4 @@ pub use crate::file::domain::file_entry::*;
 pub use crate::file::domain::file_info::*;
 pub use crate::file::domain::file_meta::*;
 pub use crate::file::domain::zip_infos::*;
-pub use crate::file::path_ex::*;
+pub use crate::file::path_util::*;

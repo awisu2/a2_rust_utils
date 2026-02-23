@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::file::PathEx;
+use crate::file::PathUtil;
 
 // convert Option<&Path> to String
 // this is for path.parent()

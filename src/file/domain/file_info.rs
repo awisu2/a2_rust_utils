@@ -4,9 +4,9 @@ use std::path::Path;
 use std::{fs::DirEntry, path::PathBuf};
 
 use crate::file::domain::zip_infos::ZipInfo;
-use crate::file::path_ex::PathEx;
+use crate::file::path_util::PathUtil;
 use crate::file::{is_image, is_movie, FileMeta};
-use crate::file::{is_zip, OptionPathEx};
+use crate::file::{is_zip, OptionPathUtil};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct FileInfo {
@@ -257,7 +257,7 @@ impl FileInfo {
 // test
 #[cfg(test)]
 mod tests {
-    use crate::file::path_ex::DIR_SEPARATOR;
+    use crate::file::path_util::DIR_SEPARATOR;
 
     use super::*;
 

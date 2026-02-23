@@ -1,12 +1,12 @@
 pub const DIR_SEPARATOR: &str = "/";
 pub const DIR_SEPARATOR_WINDOWS: &str = "\\";
 
-pub trait PathEx {
+pub trait PathUtil {
     fn to_string_ex(&self) -> String;
     fn remove_ends_separator(&self) -> String;
 }
 
-impl<T> PathEx for T
+impl<T> PathUtil for T
 where
     T: AsRef<std::ffi::OsStr>,
 {
@@ -22,11 +22,11 @@ where
     }
 }
 
-pub trait OptionPathEx {
+pub trait OptionPathUtil {
     fn to_string_ex(&self) -> String;
 }
 
-impl<T> OptionPathEx for Option<T>
+impl<T> OptionPathUtil for Option<T>
 where
     T: AsRef<std::ffi::OsStr>,
 {
