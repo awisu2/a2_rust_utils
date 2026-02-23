@@ -38,10 +38,25 @@ impl ZipEx {
                     if missing_dirs.contains_key(&info.name) {
                         missing_dirs.remove(&info.name);
                     }
-                } else if let Some((dir_path, _)) = info.name.rsplit_once('/') {
-                    if !real_dirs.contains_key(dir_path) {
-                        missing_dirs
-                            .insert(dir_path.to_string_ex(), ZipInfo::new_dir(path, dir_path));
+                } else {
+                    if info.name.contains('/') {
+                        // 複数階層のディレクトリの場合があるため、分解して結合していく感じで補完
+                        let parts: Vec<&str> = info.name.split('/').collect();
+
+                        let mut current = String::new();
+                        for part in parts.iter().take(parts.len() - 1) {
+                            if !current.is_empty() {
+                                current.push('/');
+                            }
+                            current.push_str(part);
+
+                            if !real_dirs.contains_key(&current) {
+                                missing_dirs.insert(
+                                    current.to_string_ex(),
+                                    ZipInfo::new_dir(path, &current),
+                                );
+                            }
+                        }
                     }
                 }
             }
