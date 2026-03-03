@@ -6,7 +6,7 @@ use std::path::{Path, PathBuf};
 
 pub mod zip_util;
 
-static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov"];
+static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov", "webm"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
 static ZIP_EXTENSIONS: &[&str] = &["zip"];
 
