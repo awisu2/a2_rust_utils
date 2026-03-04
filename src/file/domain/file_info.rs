@@ -228,6 +228,7 @@ impl FileInfo {
     pub fn load_meta(&mut self) -> Self {
         // load meta (IO cost) =====
         let pathbuf = self.path.to_path_buf();
+        // NOTE: io cost
         let meta = match pathbuf.metadata() {
             Ok(meta) => meta,
             Err(_) => return self.clone(),

@@ -1,8 +1,22 @@
 use crate::file::domain::file_info::FileInfo;
+use crate::file::FileMeta;
 use anyhow::{anyhow, Result};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
+
+#[cfg(target_os = "windows")]
+use std::ffi::OsString;
+#[cfg(target_os = "windows")]
+use std::os::windows::ffi::OsStringExt;
+#[cfg(target_os = "windows")]
+use windows::core::PCWSTR;
+#[cfg(target_os = "windows")]
+use windows::Win32::Foundation::{FILETIME, INVALID_HANDLE_VALUE};
+#[cfg(target_os = "windows")]
+use windows::Win32::Storage::FileSystem::{
+    FindFirstFileW, FindNextFileW, FILE_ATTRIBUTE_DIRECTORY, WIN32_FIND_DATAW,
+};
 
 pub mod zip_util;
 
@@ -24,6 +38,7 @@ pub fn is_zip(extension: &str) -> bool {
 
 /// Read directory and return file infos.  
 /// It include all type (file, dirctory, symlink, etc...) infos
+#[cfg(not(target_os = "windows"))]
 pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
     let mut vec: Vec<FileInfo> = Vec::new();
 
@@ -36,6 +51,69 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
     }
 
     Ok(vec)
+}
+
+#[cfg(target_os = "windows")]
+fn wide_cstr_to_osstring(buf: &[u16]) -> OsString {
+    let len = buf.iter().position(|&c| c == 0).unwrap_or(buf.len());
+    OsString::from_wide(&buf[..len])
+}
+
+#[cfg(target_os = "windows")]
+fn filetime_to_u64(ft: FILETIME) -> u64 {
+    ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
+}
+
+#[cfg(target_os = "windows")]
+pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
+    // windows codes
+    unsafe {
+        let mut data = WIN32_FIND_DATAW::default();
+
+        // search files under {dir} =====
+        let pattern = format!(r"{}\*", dir);
+        let pattern: Vec<u16> = pattern.encode_utf16().chain(Some(0)).collect();
+
+        let handle = FindFirstFileW(PCWSTR(pattern.as_ptr()), &mut data)?;
+        if handle == INVALID_HANDLE_VALUE {
+            return Err(anyhow!("Failed to find first file"));
+        }
+
+        // convert =====
+        let mut vec: Vec<FileInfo> = Vec::new();
+        loop {
+            let name = wide_cstr_to_osstring(&data.cFileName);
+            let name_str = name.to_string_lossy();
+
+            // "." と ".." を除外
+            if name_str != "." && name_str != ".." {
+                println!("{}", name_str);
+            }
+
+            let full_path = std::path::Path::new(dir).join(&*name_str);
+            let full_path_buf = PathBuf::from(full_path);
+
+            let meta = FileMeta {
+                modified: filetime_to_u64(data.ftLastWriteTime),
+                created: filetime_to_u64(data.ftCreationTime),
+                size: ((data.nFileSizeHigh as u64) << 32) | (data.nFileSizeLow as u64),
+            };
+
+            let mut info = FileInfo::from_path(&full_path_buf);
+            info.is_dir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY.0 != 0;
+            info.is_file = !info.is_dir;
+            info.meta = Some(meta);
+
+            vec.push(info);
+
+            // finish all files =====
+            if FindNextFileW(handle, &mut data).is_err() {
+                break;
+            }
+        }
+
+        Ok(vec)
+    }
 }
 
 pub fn read_dir_deep(dir: &str, deep: usize) -> Result<Vec<FileInfo>> {
