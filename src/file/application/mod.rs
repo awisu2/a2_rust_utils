@@ -23,6 +23,7 @@ pub mod zip_util;
 static MOVIE_EXTENSIONS: &[&str] = &["mp4", "mpeg", "mpg", "avi", "mov", "webm"];
 static IMAGE_EXTENSIONS: &[&str] = &["jpeg", "jpg", "gif", "webp", "png"];
 static ZIP_EXTENSIONS: &[&str] = &["zip"];
+const WINDOWS_TO_UNIX_EPOCH: u64 = 116444736000000000;
 
 pub fn is_movie(extension: &str) -> bool {
     MOVIE_EXTENSIONS.contains(&extension)
@@ -59,9 +60,15 @@ fn wide_cstr_to_osstring(buf: &[u16]) -> OsString {
     OsString::from_wide(&buf[..len])
 }
 
+// #[cfg(target_os = "windows")]
+// fn filetime_to_u64(ft: FILETIME) -> u64 {
+//     ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
+// }
+
 #[cfg(target_os = "windows")]
-fn filetime_to_u64(ft: FILETIME) -> u64 {
-    ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64)
+fn filetime_to_unix_seconds(ft: FILETIME) -> u64 {
+    let v = ((ft.dwHighDateTime as u64) << 32) | (ft.dwLowDateTime as u64);
+    (v - WINDOWS_TO_UNIX_EPOCH) / 10_000_000
 }
 
 #[cfg(target_os = "windows")]
@@ -91,8 +98,8 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
                 let full_path_buf = PathBuf::from(full_path);
 
                 let meta = FileMeta {
-                    modified: filetime_to_u64(data.ftLastWriteTime),
-                    created: filetime_to_u64(data.ftCreationTime),
+                    modified: filetime_to_unix_seconds(data.ftLastWriteTime),
+                    created: filetime_to_unix_seconds(data.ftCreationTime),
                     size: ((data.nFileSizeHigh as u64) << 32) | (data.nFileSizeLow as u64),
                 };
 
