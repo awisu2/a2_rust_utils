@@ -87,24 +87,22 @@ pub fn read_dir(dir: &str) -> Result<Vec<FileInfo>> {
 
             // "." と ".." を除外
             if name_str != "." && name_str != ".." {
-                println!("{}", name_str);
+                let full_path = std::path::Path::new(dir).join(&*name_str);
+                let full_path_buf = PathBuf::from(full_path);
+
+                let meta = FileMeta {
+                    modified: filetime_to_u64(data.ftLastWriteTime),
+                    created: filetime_to_u64(data.ftCreationTime),
+                    size: ((data.nFileSizeHigh as u64) << 32) | (data.nFileSizeLow as u64),
+                };
+
+                let mut info = FileInfo::from_path(&full_path_buf);
+                info.is_dir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY.0 != 0;
+                info.is_file = !info.is_dir;
+                info.meta = Some(meta);
+
+                vec.push(info);
             }
-
-            let full_path = std::path::Path::new(dir).join(&*name_str);
-            let full_path_buf = PathBuf::from(full_path);
-
-            let meta = FileMeta {
-                modified: filetime_to_u64(data.ftLastWriteTime),
-                created: filetime_to_u64(data.ftCreationTime),
-                size: ((data.nFileSizeHigh as u64) << 32) | (data.nFileSizeLow as u64),
-            };
-
-            let mut info = FileInfo::from_path(&full_path_buf);
-            info.is_dir = data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY.0 != 0;
-            info.is_file = !info.is_dir;
-            info.meta = Some(meta);
-
-            vec.push(info);
 
             // finish all files =====
             if FindNextFileW(handle, &mut data).is_err() {
@@ -183,6 +181,21 @@ mod tests {
     #[test]
     fn test_read_dir() {
         let path: &str = "./local";
+        // let res = read_dir(path);
+        // loop {
+        //     match res {
+        //         Ok(infos) => {
+        //             for info in infos {
+        //                 println!("--{:?}", info.file_name);
+        //             }
+        //             break;
+        //         }
+        //         Err(e) => {
+        //             println!("Error: {}", e);
+        //             break;
+        //         }
+        //     }
+        // }
         let _ = read_dir(path);
     }
 
