@@ -126,16 +126,17 @@ pub fn read_dir_deep(dir: &str, deep: usize) -> Result<Vec<FileInfo>> {
 }
 
 fn read_dir_deep_(dir: &str, max_deep: usize, deep: usize) -> Result<Vec<FileInfo>> {
-    if deep > max_deep {
+    if deep >= max_deep {
         return Ok(Vec::new());
     }
 
     let mut infos = read_dir(dir)?;
-    if deep < max_deep {
+    let next_deep = deep + 1;
+    if next_deep < max_deep {
         let mut children = Vec::<FileInfo>::new();
         let dirs: Vec<&FileInfo> = infos.iter().filter(|info| info.is_dir).collect();
         for dir in &dirs {
-            let children_ = read_dir_deep_(&dir.path_string(), max_deep, deep + 1)?;
+            let children_ = read_dir_deep_(&dir.path_string(), max_deep, next_deep)?;
             children.extend(children_);
         }
         infos.extend(children);
