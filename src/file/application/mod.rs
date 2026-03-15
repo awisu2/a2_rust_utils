@@ -167,6 +167,21 @@ pub fn write(path: PathBuf, data: &[u8]) -> Result<()> {
     file.write_all(data).map_err(|e| anyhow!(e))
 }
 
+// Move file or directory. It also fix dir if needed.
+pub fn move_file(from: &str, to: &str) -> Result<()> {
+    if !fs::exists(from)? {
+        return Err(anyhow!("Source path does not exist. Path: {}", from));
+    }
+
+    // create dir if not exists
+    if let Some(parent) = Path::new(to).parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    // move file and dir with inner files
+    fs::rename(from, to).map_err(|e| anyhow!(e))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
